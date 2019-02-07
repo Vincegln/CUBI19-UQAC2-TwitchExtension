@@ -8,12 +8,12 @@ var twitch = window.Twitch.ext;
 // create the request options for our Twitch API calls
 var requests = {
     setCycle: createRequest('POST', 'color/cycle', updateBlock),
-    setHead: createRequest('POST', 'cubi/head', displayTotalVotes),
-    setLeftFront: createRequest('POST', 'cubi/left_front', displayTotalVotes),
-    setLeftBack: createRequest('POST', 'cubi/left_back', displayTotalVotes),
-    setRightFront: createRequest('POST', 'cubi/right_front', displayTotalVotes),
-    setRightBack: createRequest('POST', 'cubi/right_back', displayTotalVotes),
-    setTail: createRequest('POST', 'cubi/tail', displayTotalVotes),
+    setHeadZone: createRequest('POST', 'cubi/HeadZone', displayTotalVotes),
+    setLFLegZone: createRequest('POST', 'cubi/LFLegZone', displayTotalVotes),
+    setLBLegZone: createRequest('POST', 'cubi/LBLegZone', displayTotalVotes),
+    setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
+    setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
+    setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
     get: createRequest('GET', 'color/query')
 };
 
@@ -45,12 +45,12 @@ twitch.onAuthorized(function(auth) {
 
     // enable the buttons
     $('#cycle').removeAttr('disabled');
-    $('#head').removeAttr('disabled');
-    $('#left_front').removeAttr('disabled');
-    $('#left_back').removeAttr('disabled');
-    $('#right_front').removeAttr('disabled');
-    $('#right_back').removeAttr('disabled');
-    $('#tail').removeAttr('disabled');
+    $('#HeadZone').removeAttr('disabled');
+    $('#LFLegZone').removeAttr('disabled');
+    $('#LBLegZone').removeAttr('disabled');
+    $('#RFLegZone').removeAttr('disabled');
+    $('#RBLegZone').removeAttr('disabled');
+    $('#TailZone').removeAttr('disabled');
 
     setAuth(token);
     $.ajax(requests.get);
@@ -83,38 +83,38 @@ $(function() {
         $.ajax(requests.setCycle);
     });
 
-    // when we click the head button
-    $('#head').click(function() {
+    // when we click the HeadZone button
+    $('#HeadZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Head button pressed by ' + tuid);
-        $.ajax(requests.setHead);
+        twitch.rig.log('HeadZone button pressed by ' + tuid);
+        $.ajax(requests.setHeadZone);
     });
 
-    $('#left_front').click(function() {
+    $('#LFLegZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Left front button pressed by ' + tuid);
+        twitch.rig.log('LFLegZone button pressed by ' + tuid);
         $.ajax(requests.setLeftFront);
     });
 
-    $('#left_back').click(function() {
+    $('#LBLegZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Left back button pressed by ' + tuid);
+        twitch.rig.log('LBLegZone button pressed by ' + tuid);
         $.ajax(requests.setLeftBack);
     });
 
-    $('#right_front').click(function() {
+    $('#RFLegZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Right front button pressed by ' + tuid);
+        twitch.rig.log('RFLegZone button pressed by ' + tuid);
         $.ajax(requests.setRightFront);
     });
 
-    $('#right_back').click(function() {
+    $('#RBLegZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
         twitch.rig.log('Right back button pressed by ' + tuid);
         $.ajax(requests.setRightBack);
     });
 
-    $('#tail').click(function() {
+    $('#TailZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
         twitch.rig.log('Tail button pressed by ' + tuid);
         $.ajax(requests.setTail);

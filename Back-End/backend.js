@@ -105,43 +105,43 @@ const server = new Hapi.Server(serverOptions);
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/head',
-    handler: headButtonHandler,
+    path: '/cubi/HeadZone',
+    handler: headZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/left_front',
-    handler: leftFrontButtonHandler,
+    path: '/cubi/LFLegZone',
+    handler: lFLegZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/left_back',
-    handler: leftBackButtonHandler,
+    path: '/cubi/LBLegZone',
+    handler: lBLegZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/right_front',
-    handler: rightFrontButtonHandler,
+    path: '/cubi/RFLegZone',
+    handler: rFLegZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/right_back',
-    handler: rightBackButtonHandler,
+    path: '/cubi/RBLegZone',
+    handler: rBLegZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/tail',
-    handler: tailButtonHandler,
+    path: '/cubi/TailZone',
+    handler: tailZoneButtonHandler,
   });
 
     // Handle a new viewer requesting the color.
@@ -241,67 +241,67 @@ function colorCycleHandler(req) {
   return currentColor;
 }
 
-function headButtonHandler(req) {
+function headZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='head';
+  votes[opaqueUserId+nbVotes]='HeadZone';
   nbVotes++;
 
   return nbVotes;
 }
 
-function leftFrontButtonHandler(req) {
+function lFLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='left_front';
+  votes[opaqueUserId+nbVotes]='LFLegZone';
   nbVotes++;
 
   return nbVotes;
 }
 
-function leftBackButtonHandler(req) {
+function lBLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='left_back';
+  votes[opaqueUserId+nbVotes]='LBLegZone';
   nbVotes++;
 
   return nbVotes;
 }
 
-function rightFrontButtonHandler(req) {
+function rFLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='right_front';
+  votes[opaqueUserId+nbVotes]='RFLegZone';
   nbVotes++;
 
   return nbVotes;
 }
 
-function rightBackButtonHandler(req) {
+function rFLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='right_back';
+  votes[opaqueUserId+nbVotes]='RBLegZone';
   nbVotes++;
 
   return nbVotes;
 }
 
-function tailButtonHandler(req) {
+function tailZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='tail';
+  votes[opaqueUserId+nbVotes]='TailZone';
   nbVotes++;
 
   // return req.headers.data.content;
@@ -309,7 +309,7 @@ function tailButtonHandler(req) {
 }
 
 function voteResultHandler(req){
-    return nbVotes;
+    
 }
 
 function colorQueryHandler(req) {

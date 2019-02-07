@@ -1,0 +1,84 @@
+{
+  "allowHttpBackend": false,
+  "backendCommand": "node backend -c \"ylyfjl3337ibdpv8czd4xs320lb6ia\" -s \"5CzmGYUoaCu5YpMCkGJhkorXb6tZ+TinW3LgFDzBM8E=\t\" -o \"80173033\"",
+  "backendFolderName": "Back-End",
+  "extensionViews": [
+    {
+      "id": "1",
+      "label": "test",
+      "channelId": "265737932",
+      "type": "component",
+      "features": {
+        "isChatEnabled": false
+      },
+      "linked": false,
+      "linkedUserId": "",
+      "mode": "viewer",
+      "isPopout": false,
+      "role": "Logged-In Viewer",
+      "x": 70,
+      "y": 30,
+      "frameSize": {
+        "width": 640,
+        "height": 480
+      }
+    }
+  ],
+  "frontendCommand": "",
+  "frontendFolderName": "Front-End",
+  "manifest": {
+    "anchor": "component",
+    "assetUrls": [],
+    "authorName": "UQAC-2",
+    "bitsEnabled": false,
+    "canInstall": true,
+    "configUrl": "https://localhost.rig.twitch.tv:8080/config.html",
+    "configurationLocation": "hosted",
+    "description": "//WIP",
+    "eulaTosUrl": "",
+    "hasChatSupport": false,
+    "iconUrl": "https://localhost.rig.twitch.tv:8080/internal/icon/187/29/636836962158726466.png",
+    "iconUrls": {
+      "100x100": "https://localhost.rig.twitch.tv:8080/internal/icon/187/29/636836962158726466.png"
+    },
+    "id": "ylyfjl3337ibdpv8czd4xs320lb6ia",
+    "installationCount": -42,
+    "liveConfigUrl": "",
+    "name": "CUBI19",
+    "panelHeight": 0,
+    "privacyPolicyUrl": "",
+    "requestIdentityLink": false,
+    "requiredBroadcasterAbilities": [],
+    "screenshotUrls": [
+      "https://localhost.rig.twitch.tv:8080/https://vulcan.curseforge.com/internal/screenshots/test_data.png"
+    ],
+    "sku": "",
+    "state": "Testing",
+    "summary": "//WIP",
+    "supportEmail": "vincent.guillon@hotmail.fr",
+    "vendorCode": "",
+    "version": "0.0.1",
+    "viewerUrl": "",
+    "viewerUrls": {
+      "component": "https://localhost.rig.twitch.tv:8080/video_component.html"
+    },
+    "views": {
+      "component": {
+        "viewerUrl": "https://localhost.rig.twitch.tv:8080/video_component.html",
+        "aspectWidth": 3000,
+        "aspectHeight": 4000,
+        "size": 0,
+        "zoom": true,
+        "zoomPixels": 1024,
+        "canLinkExternalContent": false
+      },
+      "config": {
+        "viewerUrl": "https://localhost.rig.twitch.tv:8080/config.html",
+        "canLinkExternalContent": false
+      }
+    },
+    "whitelistedConfigUrls": [],
+    "whitelistedPanelUrls": []
+  },
+  "name": "CUBI19"
+}
