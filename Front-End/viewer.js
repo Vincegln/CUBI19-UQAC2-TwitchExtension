@@ -8,7 +8,6 @@ var twitch = window.Twitch.ext;
 
 // create the request options for our Twitch API calls
 var requests = {
-    setCycle: createRequest('POST', 'color/cycle', updateBlock),
     setHeadZone: createRequest('POST', 'cubi/HeadZone', displayTotalVotes),
     setLFLegZone: createRequest('POST', 'cubi/LFLegZone', displayTotalVotes),
     setLBLegZone: createRequest('POST', 'cubi/LBLegZone', displayTotalVotes),
@@ -16,7 +15,6 @@ var requests = {
     setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
     setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
 	setBodyZone: createRequest('POST', 'cubi/BodyZone', displayTotalVotes),
-    get: createRequest('GET', 'color/query')
 };
 
 function createRequest(type, method, successMethod) {
@@ -47,23 +45,11 @@ twitch.onAuthorized(function(auth) {
     tuid = auth.userId;
 
     // enable the buttons
-    $('#cycle').removeAttr('disabled');
-    $('#HeadZone').removeAttr('disabled');
-    $('#LFLegZone').removeAttr('disabled');
-    $('#LBLegZone').removeAttr('disabled');
-    $('#RFLegZone').removeAttr('disabled');
-    $('#RBLegZone').removeAttr('disabled');
-    $('#TailZone').removeAttr('disabled');
     $('#SelectZone').removeAttr('disabled');
 
     setAuth(token);
     $.ajax(requests.get);
 });
-
-function updateBlock(hex) {
-    twitch.rig.log('Updating block color');
-    $('#color').css('background-color', hex);
-}
 
 function displayTotalVotes(votes) {
     twitch.rig.log('Number of votes : ' + votes);
@@ -81,76 +67,34 @@ function logSuccess(hex, status) {
 
 $(function() {
 
-    $('#cycle').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Color thingy ' + tuid);
-        $.ajax(requests.setCycle);
-    });
-
-    // when we click the HeadZone button
-    $('#HeadZone').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('HeadZone button pressed by ' + tuid);
-        $.ajax(requests.setHeadZone);
-    });
-
-    $('#LFLegZone').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('LFLegZone button pressed by ' + tuid);
-        $.ajax(requests.setLFLegZone);
-    });
-
-    $('#LBLegZone').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('LBLegZone button pressed by ' + tuid);
-        $.ajax(requests.setLBLegZone);
-    });
-
-    $('#RFLegZone').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('RFLegZone button pressed by ' + tuid);
-        $.ajax(requests.setRFLegZone);
-    });
-
-    $('#RBLegZone').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('RBLegZone button pressed by ' + tuid);
-        $.ajax(requests.setRBLegZone);
-    });
-
-    $('#TailZone').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('TailZone button pressed by ' + tuid);
-        $.ajax(requests.setTailZone);
-    });
-	
 	$('#SelectZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('BossZone button pressed by ' + tuid);
+        twitch.rig.log('SelectZone button pressed by ' + tuid);
 		twitch.rig.log( meshName + ' selected.');
 		switch(meshName){
-			case HeadZone:
+			case "HeadZone":
 				$.ajax(requests.setHeadZone);
 				break;
-			case LFLegZone:
+			case "LFLegZone":
 				$.ajax(requests.setLFLegZone);
 				break;
-			case LBLegZone:
+			case "LBLegZone":
 				$.ajax(requests.setLBLegZone);
 				break;
-			case RFLegZone:
+			case "RFLegZone":
 				$.ajax(requests.setRFLegZone);
 				break;
-			case RBLegZone:
+			case "RBLegZone":
 				$.ajax(requests.setRBLegZone);
 				break;
-			case TailZone:
+			case "TailZone":
 				$.ajax(requests.setTailZone);
 				break;
-			case BodyZone:
+			case "BodyZone":
 				$.ajax(requests.setBodyZone);
 				break;
 			default:
+				twitch.rig.log("dafuq");
 				break;
 		}
     });

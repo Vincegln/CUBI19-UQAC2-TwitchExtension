@@ -32,32 +32,10 @@
             crossorigin="anonymous"></script>
     <script src="viewer.js" type="text/javascript"></script>
     <div>
-        <input type="button" id="HeadZone" disabled="disabled" value="HeadZone" />
-    </div>
-    <div>
-        <input type="button" id="LFLegZone" disabled="disabled" value="LFLegZone" />
-    </div>
-    <div>
-        <input type="button" id="LBLegZone" disabled="disabled" value="LBLegZone" />
-    </div>
-    <div>
-        <input type="button" id="RFLegZone" disabled="disabled" value="RFLegZone" />
-    </div>
-    <div>
-        <input type="button" id="RBLegZone" disabled="disabled" value="RBLegZone" />
-    </div>
-    <div>
-        <input type="button" id="TailZone" disabled="disabled" value="TailZone" />
-    </div>
-	<div>
         <input type="button" id="SelectZone" disabled="disabled" value="SelectZone" />
     </div>
-    <div style="float: left; position: relative; left: 50%">
-        <div id="color" style="border-radius: 50px; transition: background-color 0.5s ease; margin-top: 30px; width: 100px; height: 100px; background-color: #6441A4; float: left; position: relative; left: -50%">
-        </div>
-    </div>
 	
-	<canvas id="renderCanvas" touch-action="none"></canvas> //touch-action="none" for best results from PEP
+	<canvas id="renderCanvas" touch-action="none"></canvas>
 
 	<script>
 		var canvas = document.getElementById("renderCanvas"); // Get the canvas element 
@@ -101,8 +79,5 @@
 				engine.resize();
 		});
 	</script>
-	
-    <div id="list">
-    </div>
 </body>
 </html>
