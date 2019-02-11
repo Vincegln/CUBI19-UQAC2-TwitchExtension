@@ -15,12 +15,13 @@ var requests = {
     setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
     setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
     setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
-	setBossZone: createRequest('POST', 'cubi/'+meshName, displayTotalVotes),
+	setBodyZone: createRequest('POST', 'cubi/BodyZone', displayTotalVotes),
     get: createRequest('GET', 'color/query')
 };
 
 function createRequest(type, method, successMethod) {
 
+	twitch.rig.log('cubi/'+meshName);
     return {
         type: type,
         url: location.protocol + '//localhost:80/' + method,
@@ -53,7 +54,7 @@ twitch.onAuthorized(function(auth) {
     $('#RFLegZone').removeAttr('disabled');
     $('#RBLegZone').removeAttr('disabled');
     $('#TailZone').removeAttr('disabled');
-    $('#BossZone').removeAttr('disabled');
+    $('#SelectZone').removeAttr('disabled');
 
     setAuth(token);
     $.ajax(requests.get);
@@ -123,11 +124,35 @@ $(function() {
         $.ajax(requests.setTailZone);
     });
 	
-	$('#BossZone').click(function() {
+	$('#SelectZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
         twitch.rig.log('BossZone button pressed by ' + tuid);
 		twitch.rig.log( meshName + ' selected.');
-        $.ajax(requests.setBossZone);
+		switch(meshName){
+			case HeadZone:
+				$.ajax(requests.setHeadZone);
+				break;
+			case LFLegZone:
+				$.ajax(requests.setLFLegZone);
+				break;
+			case LBLegZone:
+				$.ajax(requests.setLBLegZone);
+				break;
+			case RFLegZone:
+				$.ajax(requests.setRFLegZone);
+				break;
+			case RBLegZone:
+				$.ajax(requests.setRBLegZone);
+				break;
+			case TailZone:
+				$.ajax(requests.setTailZone);
+				break;
+			case BodyZone:
+				$.ajax(requests.setBodyZone);
+				break;
+			default:
+				break;
+		}
     });
 
     // listen for incoming broadcast message from our EBS

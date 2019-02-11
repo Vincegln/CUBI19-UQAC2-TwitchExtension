@@ -44,7 +44,7 @@ const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
 var votes = {};
-var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0}
+var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "BodyZone": 0}
 var mostVoted = "Empty";
 var maxVotes = 0;
 var nbVotes = 0;
@@ -146,19 +146,26 @@ const server = new Hapi.Server(serverOptions);
     path: '/cubi/TailZone',
     handler: tailZoneButtonHandler,
   });
+  
+  // Handle a viewer request to cycle the color.
+  server.route({
+    method: 'POST',
+    path: '/cubi/BodyZone',
+    handler: bodyZoneButtonHandler,
+  });
 
     // Handle a new viewer requesting the color.
-    server.route({
-        method: 'GET',
-        path: '/cubi/voteResult',
-        handler: voteResultHandler,
-    });
+  server.route({
+      method: 'GET',
+      path: '/cubi/voteResult',
+      handler: voteResultHandler,
+  });
 
-	server.route({
-        method: 'GET',
-        path: '/cubi/resetVote',
-        handler: resetVoteHandler,
-    });
+  server.route({
+      method: 'GET',
+      path: '/cubi/resetVote',
+      handler: resetVoteHandler,
+  });
 
   // Handle a new viewer requesting the color.
   server.route({
@@ -351,6 +358,25 @@ function tailZoneButtonHandler(req) {
 	  nbVotes--;
   }
   votes[opaqueUserId]="TailZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
+  nbVotes++;
+
+  // return req.headers.data.content;
+  return nbVotes;
+}
+
+function bodyZoneButtonHandler(req) {
+  // Verify all requests.
+  const payload = verifyAndDecode(req.headers.authorization);
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="BodyZone";
   totalVotes[votes[opaqueUserId]]+=1;
   
   nbVotes++;
