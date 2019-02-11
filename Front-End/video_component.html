@@ -43,6 +43,7 @@
 		
 		/******* Add the create scene function ******/
 		var createScene = function () {
+			document.getElementsByTagName("body")[0].setAttribute("oncontextmenu", "return false");
 			var scene = new BABYLON.Scene(engine);
 
 			//Adding a light
