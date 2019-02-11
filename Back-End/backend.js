@@ -285,7 +285,7 @@ function rFLegZoneButtonHandler(req) {
   return nbVotes;
 }
 
-function rFLegZoneButtonHandler(req) {
+function rBLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;

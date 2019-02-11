@@ -93,31 +93,31 @@ $(function() {
     $('#LFLegZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
         twitch.rig.log('LFLegZone button pressed by ' + tuid);
-        $.ajax(requests.setLeftFront);
+        $.ajax(requests.setLFLegZone);
     });
 
     $('#LBLegZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
         twitch.rig.log('LBLegZone button pressed by ' + tuid);
-        $.ajax(requests.setLeftBack);
+        $.ajax(requests.setLBLegZone);
     });
 
     $('#RFLegZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
         twitch.rig.log('RFLegZone button pressed by ' + tuid);
-        $.ajax(requests.setRightFront);
+        $.ajax(requests.setRFLegZone);
     });
 
     $('#RBLegZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Right back button pressed by ' + tuid);
-        $.ajax(requests.setRightBack);
+        twitch.rig.log('RBLegZone button pressed by ' + tuid);
+        $.ajax(requests.setRBLegZone);
     });
 
     $('#TailZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Tail button pressed by ' + tuid);
-        $.ajax(requests.setTail);
+        twitch.rig.log('TailZone button pressed by ' + tuid);
+        $.ajax(requests.setTailZone);
     });
 
     // listen for incoming broadcast message from our EBS
