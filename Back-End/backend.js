@@ -44,6 +44,9 @@ const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
 var votes = {};
+var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "cubi/LBLegZone": 0, "cubi/RFLegZone": 0, "cubi/RBLegZone": 0, "cubi/TailZone": 0}
+var mostVoted = "Empty";
+var maxVotes = 0;
 var nbVotes = 0;
 
 const STRINGS = {
@@ -151,6 +154,12 @@ const server = new Hapi.Server(serverOptions);
         handler: voteResultHandler,
     });
 
+	server.route({
+        method: 'GET',
+        path: '/cubi/resetVotes',
+        handler: resetVotesHandler,
+    });
+
   // Handle a new viewer requesting the color.
   server.route({
     method: 'GET',
@@ -245,8 +254,15 @@ function headZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
-
-  votes[opaqueUserId+nbVotes]='HeadZone';
+  
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="HeadZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
@@ -257,7 +273,14 @@ function lFLegZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId+nbVotes]='LFLegZone';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="LFLegZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
@@ -268,7 +291,14 @@ function lBLegZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId+nbVotes]='LBLegZone';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="LBLegZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
@@ -279,7 +309,14 @@ function rFLegZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId+nbVotes]='RFLegZone';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="RFLegZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
@@ -290,7 +327,14 @@ function rBLegZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId+nbVotes]='RBLegZone';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="RBLegZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
@@ -301,7 +345,14 @@ function tailZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId+nbVotes]='TailZone';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="TailZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   // return req.headers.data.content;
@@ -309,7 +360,27 @@ function tailZoneButtonHandler(req) {
 }
 
 function voteResultHandler(req){
-    
+	maxVotes = 0;
+	mostVoted = "Empty";
+	
+	for(var vote in votes)
+	{
+		if(votes[vote] > maxVotes)
+		{
+			maxVotes = votes[vote];
+			mostVoted = vote;
+		}
+	}
+
+	return mostVoted;
+}
+
+function resetVotesHandler(req){
+    var votes = {};
+	var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "cubi/LBLegZone": 0, "cubi/RFLegZone": 0, "cubi/RBLegZone": 0, "cubi/TailZone": 0}
+	var mostVoted = "Empty";
+	var maxVotes = 0;
+	var nbVotes = 0;
 }
 
 function colorQueryHandler(req) {

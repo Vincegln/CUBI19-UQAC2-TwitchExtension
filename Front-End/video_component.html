@@ -2,6 +2,27 @@
 <html>
 <head>
     <title>Viewer Page</title>
+	
+	<style>
+		html, body {
+			overflow: hidden;
+			width: 80%;
+			height: 80%;
+			margin: 0;
+			padding: 0;
+		}
+
+		#renderCanvas {
+			width: 80%;
+			height: 80%;
+			touch-action: none;
+		}
+	</style>
+
+	<script src="https://cdn.babylonjs.com/babylon.js"></script>
+	<script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+	<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+	
 </head>
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
     <div id="app" class="full-height"></div>
@@ -33,10 +54,59 @@
     <div>
         <input type="button" id="TailZone" disabled="disabled" value="TailZone" />
     </div>
+	<div>
+        <input type="button" id="BossZone" disabled="disabled" value="BossZone" />
+    </div>
     <div style="float: left; position: relative; left: 50%">
         <div id="color" style="border-radius: 50px; transition: background-color 0.5s ease; margin-top: 30px; width: 100px; height: 100px; background-color: #6441A4; float: left; position: relative; left: -50%">
         </div>
     </div>
+	
+	<canvas id="renderCanvas" touch-action="none"></canvas> //touch-action="none" for best results from PEP
+
+	<script>
+		var canvas = document.getElementById("renderCanvas"); // Get the canvas element 
+		var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+		
+		/******* Add the create scene function ******/
+		var createScene = function () {
+			var scene = new BABYLON.Scene(engine);
+
+			//Adding a light
+			var light = new BABYLON.HemisphericLight();
+
+			//Adding an Arc Rotate Camera
+			var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 10, BABYLON.Vector3.Zero(), scene);
+			camera.attachControl(canvas, false);
+
+			// The first parameter can be used to specify which mesh to import. Here we import all meshes
+			BABYLON.SceneLoader.Append("./knightartorias/", "scene.gltf", scene, function (scene) {
+				scene.activeCamera = null;
+				scene.createDefaultCameraOrLight(true);
+				scene.activeCamera.attachControl(canvas, false);
+			});
+
+			return scene;
+		}
+		/******* End of the create scene function ******/    
+
+		var scene = createScene(); //Call the createScene function
+
+		scene.onPointerPick = function (evt, pickInfo) {
+			meshName = pickInfo.pickedMesh.name;
+		};
+
+		// Register a render loop to repeatedly render the scene
+		engine.runRenderLoop(function () { 
+				scene.render();
+		});
+
+		// Watch for browser/canvas resize events
+		window.addEventListener("resize", function () { 
+				engine.resize();
+		});
+	</script>
+	
     <div id="list">
     </div>
 </body>

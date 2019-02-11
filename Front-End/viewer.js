@@ -1,6 +1,7 @@
 var token = "";
 var tuid = "";
 var ebs = "";
+var meshName = "";
 
 // because who wants to type this every time?
 var twitch = window.Twitch.ext;
@@ -14,6 +15,7 @@ var requests = {
     setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
     setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
     setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
+	setBossZone: createRequest('POST', 'cubi/'+meshName, displayTotalVotes),
     get: createRequest('GET', 'color/query')
 };
 
@@ -51,6 +53,7 @@ twitch.onAuthorized(function(auth) {
     $('#RFLegZone').removeAttr('disabled');
     $('#RBLegZone').removeAttr('disabled');
     $('#TailZone').removeAttr('disabled');
+    $('#BossZone').removeAttr('disabled');
 
     setAuth(token);
     $.ajax(requests.get);
@@ -118,6 +121,13 @@ $(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
         twitch.rig.log('TailZone button pressed by ' + tuid);
         $.ajax(requests.setTailZone);
+    });
+	
+	$('#BossZone').click(function() {
+        if(!token) { return twitch.rig.log('Not authorized'); }
+        twitch.rig.log('BossZone button pressed by ' + tuid);
+		twitch.rig.log( meshName + ' selected.');
+        $.ajax(requests.setBossZone);
     });
 
     // listen for incoming broadcast message from our EBS
