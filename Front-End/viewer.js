@@ -23,7 +23,7 @@ function createRequest(type, method, successMethod) {
 
     return {
         type: type,
-        url: location.protocol + '//localhost:8081/' + method,
+        url: location.protocol + '//localhost:80/' + method,
         success: successMethod,
         error: logError
     }
