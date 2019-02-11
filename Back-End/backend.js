@@ -44,7 +44,7 @@ const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
 var votes = {};
-var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "cubi/LBLegZone": 0, "cubi/RFLegZone": 0, "cubi/RBLegZone": 0, "cubi/TailZone": 0}
+var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0}
 var mostVoted = "Empty";
 var maxVotes = 0;
 var nbVotes = 0;
@@ -156,8 +156,8 @@ const server = new Hapi.Server(serverOptions);
 
 	server.route({
         method: 'GET',
-        path: '/cubi/resetVotes',
-        handler: resetVotesHandler,
+        path: '/cubi/resetVote',
+        handler: resetVoteHandler,
     });
 
   // Handle a new viewer requesting the color.
@@ -363,11 +363,11 @@ function voteResultHandler(req){
 	maxVotes = 0;
 	mostVoted = "Empty";
 	
-	for(var vote in votes)
+	for(var vote in totalVotes)
 	{
-		if(votes[vote] > maxVotes)
+		if(totalVotes[vote] > maxVotes)
 		{
-			maxVotes = votes[vote];
+			maxVotes = totalVotes[vote];
 			mostVoted = vote;
 		}
 	}
@@ -375,12 +375,14 @@ function voteResultHandler(req){
 	return mostVoted;
 }
 
-function resetVotesHandler(req){
-    var votes = {};
-	var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "cubi/LBLegZone": 0, "cubi/RFLegZone": 0, "cubi/RBLegZone": 0, "cubi/TailZone": 0}
-	var mostVoted = "Empty";
-	var maxVotes = 0;
-	var nbVotes = 0;
+function resetVoteHandler(req){
+    votes = {};
+	totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0}
+	mostVoted = "Empty";
+	maxVotes = 0;
+	nbVotes = 0;
+	
+	return "Reset completed";
 }
 
 function colorQueryHandler(req) {
