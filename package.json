@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "cert": "node bin/generate_cert.js server",
-    "start": "node Back-End/backend -c \"ylyfjl3337ibdpv8czd4xs320lb
-6ia\" -s \"5CzmGYUoaCu5YpMCkGJhkorXb6tZ+TinW3LgFDzBM8E=^I\" -o "80173033\""
+    "start": "node Back-End/backend -c \"ylyfjl3337ibdpv8czd4xs320lb6ia\" -s \"5CzmGYUoaCu5YpMCkGJhkorXb6tZ+TinW3LgFDzBM8E=^I\" -o \"80173033\""
   },
   "keywords": [
     "twitch",
