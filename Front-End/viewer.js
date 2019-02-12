@@ -1,27 +1,28 @@
 var token = "";
 var tuid = "";
 var ebs = "";
+var meshName = "";
 
 // because who wants to type this every time?
 var twitch = window.Twitch.ext;
 
 // create the request options for our Twitch API calls
 var requests = {
-    setCycle: createRequest('POST', 'color/cycle', updateBlock),
-    setHead: createRequest('POST', 'cubi/head', displayTotalVotes),
-    setLeftFront: createRequest('POST', 'cubi/left_front', displayTotalVotes),
-    setLeftBack: createRequest('POST', 'cubi/left_back', displayTotalVotes),
-    setRightFront: createRequest('POST', 'cubi/right_front', displayTotalVotes),
-    setRightBack: createRequest('POST', 'cubi/right_back', displayTotalVotes),
-    setTail: createRequest('POST', 'cubi/tail', displayTotalVotes),
-    get: createRequest('GET', 'color/query')
+    setHeadZone: createRequest('POST', 'cubi/HeadZone', displayTotalVotes),
+    setLFLegZone: createRequest('POST', 'cubi/LFLegZone', displayTotalVotes),
+    setLBLegZone: createRequest('POST', 'cubi/LBLegZone', displayTotalVotes),
+    setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
+    setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
+    setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
+	setBodyZone: createRequest('POST', 'cubi/BodyZone', displayTotalVotes),
 };
 
 function createRequest(type, method, successMethod) {
 
+	twitch.rig.log('cubi/'+meshName);
     return {
         type: type,
-        url: location.protocol + '//localhost:8081/' + method,
+        url: location.protocol + '//localhost:80/' + method,
         success: successMethod,
         error: logError
     }
@@ -44,22 +45,11 @@ twitch.onAuthorized(function(auth) {
     tuid = auth.userId;
 
     // enable the buttons
-    $('#cycle').removeAttr('disabled');
-    $('#head').removeAttr('disabled');
-    $('#left_front').removeAttr('disabled');
-    $('#left_back').removeAttr('disabled');
-    $('#right_front').removeAttr('disabled');
-    $('#right_back').removeAttr('disabled');
-    $('#tail').removeAttr('disabled');
+    $('#SelectZone').removeAttr('disabled');
 
     setAuth(token);
     $.ajax(requests.get);
 });
-
-function updateBlock(hex) {
-    twitch.rig.log('Updating block color');
-    $('#color').css('background-color', hex);
-}
 
 function displayTotalVotes(votes) {
     twitch.rig.log('Number of votes : ' + votes);
@@ -77,47 +67,36 @@ function logSuccess(hex, status) {
 
 $(function() {
 
-    $('#cycle').click(function() {
+	$('#SelectZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Color thingy ' + tuid);
-        $.ajax(requests.setCycle);
-    });
-
-    // when we click the head button
-    $('#head').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Head button pressed by ' + tuid);
-        $.ajax(requests.setHead);
-    });
-
-    $('#left_front').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Left front button pressed by ' + tuid);
-        $.ajax(requests.setLeftFront);
-    });
-
-    $('#left_back').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Left back button pressed by ' + tuid);
-        $.ajax(requests.setLeftBack);
-    });
-
-    $('#right_front').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Right front button pressed by ' + tuid);
-        $.ajax(requests.setRightFront);
-    });
-
-    $('#right_back').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Right back button pressed by ' + tuid);
-        $.ajax(requests.setRightBack);
-    });
-
-    $('#tail').click(function() {
-        if(!token) { return twitch.rig.log('Not authorized'); }
-        twitch.rig.log('Tail button pressed by ' + tuid);
-        $.ajax(requests.setTail);
+        twitch.rig.log('SelectZone button pressed by ' + tuid);
+		twitch.rig.log( meshName + ' selected.');
+		switch(meshName){
+			case "HeadZone":
+				$.ajax(requests.setHeadZone);
+				break;
+			case "LFLegZone":
+				$.ajax(requests.setLFLegZone);
+				break;
+			case "LBLegZone":
+				$.ajax(requests.setLBLegZone);
+				break;
+			case "RFLegZone":
+				$.ajax(requests.setRFLegZone);
+				break;
+			case "RBLegZone":
+				$.ajax(requests.setRBLegZone);
+				break;
+			case "TailZone":
+				$.ajax(requests.setTailZone);
+				break;
+			case "BodyZone":
+				$.ajax(requests.setBodyZone);
+				break;
+			default:
+				twitch.rig.log("dafuq");
+				break;
+		}
     });
 
     // listen for incoming broadcast message from our EBS

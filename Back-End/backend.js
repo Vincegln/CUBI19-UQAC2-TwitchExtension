@@ -32,7 +32,6 @@ const verboseLogging = true;
 const verboseLog = verboseLogging ? console.log.bind(console) : () => { };
 
 // Service state variables
-const initialColor = color('#6441A4');      // super important; bleedPurple, etc.
 const serverTokenDurationSec = 30;          // our tokens for pubsub expire after 30 seconds
 const userCooldownMs = 1000;                // maximum input rate per user to prevent bot abuse
 const userCooldownClearIntervalMs = 60000;  // interval to reset our tracking object
@@ -44,6 +43,9 @@ const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
 var votes = {};
+var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "BodyZone": 0}
+var mostVoted = "Empty";
+var maxVotes = 0;
 var nbVotes = 0;
 
 const STRINGS = {
@@ -77,7 +79,7 @@ const clientId = getOption('clientId', 'ENV_CLIENT_ID');
 
 const serverOptions = {
   host: 'localhost',
-  port: 8081,
+  port: 80,
   routes: {
     cors: {
       origin: ['*'],
@@ -98,64 +100,63 @@ const server = new Hapi.Server(serverOptions);
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/color/cycle',
-    handler: colorCycleHandler,
+    path: '/cubi/HeadZone',
+    handler: headZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/head',
-    handler: headButtonHandler,
+    path: '/cubi/LFLegZone',
+    handler: lFLegZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/left_front',
-    handler: leftFrontButtonHandler,
+    path: '/cubi/LBLegZone',
+    handler: lBLegZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/left_back',
-    handler: leftBackButtonHandler,
+    path: '/cubi/RFLegZone',
+    handler: rFLegZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/right_front',
-    handler: rightFrontButtonHandler,
+    path: '/cubi/RBLegZone',
+    handler: rBLegZoneButtonHandler,
   });
 
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/right_back',
-    handler: rightBackButtonHandler,
+    path: '/cubi/TailZone',
+    handler: tailZoneButtonHandler,
   });
-
+  
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/tail',
-    handler: tailButtonHandler,
+    path: '/cubi/BodyZone',
+    handler: bodyZoneButtonHandler,
   });
 
     // Handle a new viewer requesting the color.
-    server.route({
-        method: 'GET',
-        path: '/cubi/voteResult',
-        handler: voteResultHandler,
-    });
-
-  // Handle a new viewer requesting the color.
   server.route({
-    method: 'GET',
-    path: '/color/query',
-    handler: colorQueryHandler,
+      method: 'GET',
+      path: '/cubi/voteResult',
+      handler: voteResultHandler,
+  });
+
+  server.route({
+      method: 'GET',
+      path: '/cubi/resetVote',
+      handler: resetVoteHandler,
   });
 
   server.route({
@@ -215,93 +216,128 @@ function verifyAndDecode(header) {
   throw Boom.unauthorized(STRINGS.invalidAuthHeader);
 }
 
-function colorCycleHandler(req) {
+function headZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
-
-  // Store the color for the channel.
-  let currentColor = channelColors[channelId] || initialColor;
-
-  // Bot abuse prevention:  don't allow a user to spam the button.
-  if (userIsInCooldown(opaqueUserId)) {
-    throw Boom.tooManyRequests(STRINGS.cooldown);
+  
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
   }
-
-  // Rotate the color as if on a color wheel.
-  verboseLog(STRINGS.cyclingColor, channelId, opaqueUserId);
-  currentColor = color(currentColor).rotate(colorWheelRotation).hex();
-
-  // Save the new color for the channel.
-  channelColors[channelId] = currentColor;
-
-  // Broadcast the color change to all other extension instances on this channel.
-  attemptColorBroadcast(channelId);
-
-  return currentColor;
-}
-
-function headButtonHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
-
-  votes[opaqueUserId]='head';
+  votes[opaqueUserId]="HeadZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
 }
 
-function leftFrontButtonHandler(req) {
+function lFLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='left_front';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="LFLegZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
 }
 
-function leftBackButtonHandler(req) {
+function lBLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='left_back';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="LBLegZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
 }
 
-function rightFrontButtonHandler(req) {
+function rFLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='right_front';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="RFLegZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
 }
 
-function rightBackButtonHandler(req) {
+function rBLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='right_back';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="RBLegZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   return nbVotes;
 }
 
-function tailButtonHandler(req) {
+function tailZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  votes[opaqueUserId]='tail';
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="TailZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
+  nbVotes++;
+
+  // return req.headers.data.content;
+  return nbVotes;
+}
+
+function bodyZoneButtonHandler(req) {
+  // Verify all requests.
+  const payload = verifyAndDecode(req.headers.authorization);
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+
+  if(votes[opaqueUserId]!=null)
+  {
+	  totalVotes[votes[opaqueUserId]]-=1;
+	  nbVotes--;
+  }
+  votes[opaqueUserId]="BodyZone";
+  totalVotes[votes[opaqueUserId]]+=1;
+  
   nbVotes++;
 
   // return req.headers.data.content;
@@ -309,66 +345,29 @@ function tailButtonHandler(req) {
 }
 
 function voteResultHandler(req){
-    return nbVotes;
+	maxVotes = 0;
+	mostVoted = "Empty";
+	
+	for(var vote in totalVotes)
+	{
+		if(totalVotes[vote] > maxVotes)
+		{
+			maxVotes = totalVotes[vote];
+			mostVoted = vote;
+		}
+	}
+
+	return mostVoted;
 }
 
-function colorQueryHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-
-  // Get the color for the channel from the payload and return it.
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
-  const currentColor = color(channelColors[channelId] || initialColor).hex();
-  verboseLog(STRINGS.sendColor, currentColor, opaqueUserId);
-  return currentColor;
-}
-
-function attemptColorBroadcast(channelId) {
-  // Check the cool-down to determine if it's okay to send now.
-  const now = Date.now();
-  const cooldown = channelCooldowns[channelId];
-  if (!cooldown || cooldown.time < now) {
-    // It is.
-    sendColorBroadcast(channelId);
-    channelCooldowns[channelId] = { time: now + channelCooldownMs };
-  } else if (!cooldown.trigger) {
-    // It isn't; schedule a delayed broadcast if we haven't already done so.
-    cooldown.trigger = setTimeout(sendColorBroadcast, now - cooldown.time, channelId);
-  }
-}
-
-function sendColorBroadcast(channelId) {
-  // Set the HTTP headers required by the Twitch API.
-  const headers = {
-    'Client-ID': clientId,
-    'Content-Type': 'application/json',
-    'Authorization': bearerPrefix + makeServerToken(channelId),
-  };
-
-  // Create the POST body for the Twitch API request.
-  const currentColor = color(channelColors[channelId] || initialColor).hex();
-  const body = JSON.stringify({
-    content_type: 'application/json',
-    message: currentColor,
-    targets: ['broadcast'],
-  });
-
-  // Send the broadcast request to the Twitch API.
-  verboseLog(STRINGS.colorBroadcast, currentColor, channelId);
-  request(
-    `https://api.twitch.tv/extensions/message/${channelId}`,
-    {
-      method: 'POST',
-      headers,
-      body,
-    }
-    , (err, res) => {
-      if (err) {
-        console.log(STRINGS.messageSendError, channelId, err);
-      } else {
-        verboseLog(STRINGS.pubsubResponse, channelId, res.statusCode);
-      }
-    });
+function resetVoteHandler(req){
+    votes = {};
+	totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "BodyZone": 0}
+	mostVoted = "Empty";
+	maxVotes = 0;
+	nbVotes = 0;
+	
+	return "Reset completed";
 }
 
 // Create and return a JWT for use by this service.
