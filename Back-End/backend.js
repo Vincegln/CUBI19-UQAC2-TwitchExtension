@@ -62,7 +62,7 @@ const clientId = getOption('clientId', 'ENV_CLIENT_ID');
 
 const serverOptions = {
   host: 'localhost',
-  port: 80,
+  port: 8081,
   routes: {
     cors: {
       origin: ['*'],
