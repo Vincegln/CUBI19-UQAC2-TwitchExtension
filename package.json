@@ -1,21 +1,20 @@
 {
-  "name": "extension-hello-world",
+  "name": "CubiTwitchExtension",
   "version": "1.0.0",
-  "description": "Simple Hello World Twitch Extension",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "cert": "node bin/generate_cert.js server",
-    "start": "node services/backend"
+    "start": "node Back-End/backend -c \"ylyfjl3337ibdpv8czd4xs320lb6ia\" -s \"5CzmGYUoaCu5YpMCkGJhkorXb6tZ+TinW3LgFDzBM8E=^I\" -o \"80173033\""
   },
   "keywords": [
     "twitch",
     "extension"
   ],
-  "author": "Emily Rose <amorelandra@twitch.tv>",
-  "license": "Apache-2.0",
+  "author": "Vincent Guillon <vincent.guillon@hotmail.fr>",
+  "license": "MIT",
   "dependencies": {
     "boom": "^7.2.0",
-    "color": "^3.0.0",
     "commander": "^2.15.0",
     "hapi": "^17.8.3",
     "inert": "^5.1.0",

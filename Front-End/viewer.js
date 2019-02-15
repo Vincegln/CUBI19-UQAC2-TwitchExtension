@@ -22,7 +22,7 @@ function createRequest(type, method, successMethod) {
 	twitch.rig.log('cubi/'+meshName);
     return {
         type: type,
-        url: location.protocol + '//localhost:80/' + method,
+        url: 'https://cubi19uqac2.finch4.xyz/' + method,/*location.protocol + '//localhost:8005/' + method,*/
         success: successMethod,
         error: logError
     }

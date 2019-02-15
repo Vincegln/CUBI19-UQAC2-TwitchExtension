@@ -1,24 +1,7 @@
-/**
- *    Copyright 2018 Amazon.com, Inc. or its affiliates
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
-
 const fs = require('fs');
 const Hapi = require('hapi');
 const path = require('path');
 const Boom = require('boom');
-const color = require('color');
 const ext = require('commander');
 const jsonwebtoken = require('jsonwebtoken');
 const request = require('request');
@@ -79,7 +62,7 @@ const clientId = getOption('clientId', 'ENV_CLIENT_ID');
 
 const serverOptions = {
   host: 'localhost',
-  port: 80,
+  port: 8005,
   routes: {
     cors: {
       origin: ['*'],
@@ -87,6 +70,7 @@ const serverOptions = {
   },
 };
 const serverPathRoot = path.resolve(__dirname, '..', 'conf', 'server');
+
 if (fs.existsSync(serverPathRoot + '.crt') && fs.existsSync(serverPathRoot + '.key')) {
   serverOptions.tls = {
     // If you need a certificate, execute "npm run cert".
