@@ -6,15 +6,15 @@
 	<style>
 		html, body {
 			overflow: hidden;
-			width: 90%;
-			height: 90%;
+			width: 100%;
+			height: 100%;
 			margin: 0;
 			padding: 0;
 		}
 
 		#renderCanvas {
-			width: 90%;
-			height: 90%;
+			width: 97%;
+			height: 97%;
 			touch-action: none;
 		}
 	</style>
@@ -32,9 +32,6 @@
             crossorigin="anonymous"></script>
 		
     <script src="viewer.js" type="text/javascript"></script>
-    <div>
-        <input type="button" id="SelectZone" disabled="disabled" value="SelectZone" />
-    </div>
 	
 	<canvas id="renderCanvas" touch-action="none"></canvas>
 
@@ -81,5 +78,10 @@
 				engine.resize();
 		});
 	</script>
+	
+	<div>
+		<input type="button" id="SelectZone" disabled="disabled" value="SelectZone" />
+	</div>
+	
 </body>
 </html>
