@@ -2,6 +2,7 @@ var canvas = document.getElementById("renderCanvas"); // Get the canvas element
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 
 var previouslySelected;
+var previousMaterial;
 
 /******* Add the create scene function ******/
 var createScene = function () {
@@ -33,13 +34,14 @@ scene.debugLayer.show();
 scene.onPointerPick = function (evt, pickInfo) {
 	if(previouslySelected)
 	{
-		previouslySelected.material.albedoColor = new BABYLON.Color3.Gray();
+		previouslySelected.material = previousMaterial;
 	}
 	previouslySelected = pickInfo.pickedMesh;
 	meshName = pickInfo.pickedMesh.name;
-	materialPicked = pickInfo.pickedMesh.material.clone(meshName+"_mat");
-	materialPicked.albedoColor = new BABYLON.Color3.Green();
+	previousMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
+	materialPicked = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
 	pickInfo.pickedMesh.material = materialPicked;
+	pickInfo.pickedMesh.material.albedoColor = new BABYLON.Color3.Green();
 };
 
 // Register a render loop to repeatedly render the scene
