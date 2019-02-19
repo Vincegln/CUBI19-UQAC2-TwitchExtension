@@ -33,7 +33,7 @@
     "bitsEnabled": false,
     "canInstall": true,
     "configUrl": "https://localhost.rig.twitch.tv:8080/config.html",
-    "configurationLocation": "hosted",
+    "configurationLocation": "none",
     "description": "//WIP",
     "eulaTosUrl": "",
     "hasChatSupport": false,
@@ -47,22 +47,27 @@
     "name": "CUBI19",
     "panelHeight": 0,
     "privacyPolicyUrl": "",
-    "requestIdentityLink": false,
+    "requestIdentityLink": true,
     "requiredBroadcasterAbilities": [],
     "screenshotUrls": [
       "https://localhost.rig.twitch.tv:8080/https://vulcan.curseforge.com/internal/screenshots/test_data.png"
     ],
     "sku": "",
     "state": "Testing",
+    "subscriptionsSupportLevel": "none",
     "summary": "//WIP",
     "supportEmail": "vincent.guillon@hotmail.fr",
     "vendorCode": "",
     "version": "0.0.1",
     "viewerUrl": "",
     "viewerUrls": {
+      "mobile": "https://localhost.rig.twitch.tv:8080/video_component.html",
       "component": "https://localhost.rig.twitch.tv:8080/video_component.html"
     },
     "views": {
+      "mobile": {
+        "viewerUrl": "https://localhost.rig.twitch.tv:8080/video_component.html"
+      },
       "component": {
         "viewerUrl": "https://localhost.rig.twitch.tv:8080/video_component.html",
         "aspectWidth": 3000,
