@@ -22,6 +22,8 @@ var createScene = function () {
 		scene.createDefaultCameraOrLight(true);
 		scene.activeCamera.attachControl(canvas, false);
 	});
+	
+	scene.clearColor = new BABYLON.Color4(0,0,0,0.0000000000000001);
 
 	return scene;
 }
@@ -40,8 +42,8 @@ scene.onPointerPick = function (evt, pickInfo) {
 	meshName = pickInfo.pickedMesh.name;
 	previousMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
 	materialPicked = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
+	materialPicked.albedoColor = new BABYLON.Color3.Green();
 	pickInfo.pickedMesh.material = materialPicked;
-	pickInfo.pickedMesh.material.albedoColor = new BABYLON.Color3.Green();
 };
 
 // Register a render loop to repeatedly render the scene
