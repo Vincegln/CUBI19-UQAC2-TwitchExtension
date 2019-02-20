@@ -5,29 +5,39 @@
 	
 	<style>
 		html, body {
-			overflow: hidden;
+			<!-- overflow: hidden; -->
 			width: 100%;
 			height: 100%;
 			margin: 0;
 			padding: 0;
 		}
+		
+		body
+		{
+			opacity: 0.2;
+			transition: 0.3s;
+		}
+
+		body:hover
+		{
+			opacity: 1.0;
+		}
 
 		#renderCanvas {
-			width: 97%;
-			height: 97%;
-			touch-action: none;
+			width: 90%;
+			height: 90%;
 		}
 	</style>
 
-	<script src="https://cdn.babylonjs.com/babylon.js"></script>
-	<script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-	<script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
-	
+	<script src="./babylon.js"></script>
+	<!-- <script src="./babylonjs.loaders.min.js"></script> -->
+	<script src="./pep.js"></script>
+
 </head>
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
     <div id="app" class="full-height"></div>
     <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+    <script src="./jquery-3.3.1.min.js"
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
             crossorigin="anonymous"></script>
 		
@@ -35,49 +45,7 @@
 	
 	<canvas id="renderCanvas" touch-action="none"></canvas>
 
-	<script>
-		var canvas = document.getElementById("renderCanvas"); // Get the canvas element 
-		var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
-		
-		/******* Add the create scene function ******/
-		var createScene = function () {
-			document.getElementsByTagName("body")[0].setAttribute("oncontextmenu", "return false");
-			var scene = new BABYLON.Scene(engine);
-
-			//Adding a light
-			var light = new BABYLON.HemisphericLight();
-
-			//Adding an Arc Rotate Camera
-			var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 10, BABYLON.Vector3.Zero(), scene);
-			camera.attachControl(canvas, false);
-
-			// The first parameter can be used to specify which mesh to import. Here we import all meshes
-			BABYLON.SceneLoader.Append("./assets/", "Boss_Zones.gltf", scene, function (scene) {
-				scene.activeCamera = null;
-				scene.createDefaultCameraOrLight(true);
-				scene.activeCamera.attachControl(canvas, false);
-			});
-
-			return scene;
-		}
-		/******* End of the create scene function ******/    
-
-		var scene = createScene(); //Call the createScene function
-
-		scene.onPointerPick = function (evt, pickInfo) {
-			meshName = pickInfo.pickedMesh.name;
-		};
-
-		// Register a render loop to repeatedly render the scene
-		engine.runRenderLoop(function () { 
-				scene.render();
-		});
-
-		// Watch for browser/canvas resize events
-		window.addEventListener("resize", function () { 
-				engine.resize();
-		});
-	</script>
+	<script src="./render.js"></script>
 	
 	<div>
 		<input type="button" id="SelectZone" disabled="disabled" value="SelectZone" />

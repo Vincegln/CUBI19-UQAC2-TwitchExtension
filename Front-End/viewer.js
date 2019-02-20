@@ -14,12 +14,12 @@ var requests = {
     setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
     setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
     setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
-	setBodyZone: createRequest('POST', 'cubi/BodyZone', displayTotalVotes),
+	setChestZone: createRequest('POST', 'cubi/ChestZone', displayTotalVotes)
 };
 
 function createRequest(type, method, successMethod) {
 
-	twitch.rig.log('cubi/'+meshName);
+	twitch.rig.log(method);
     return {
         type: type,
         url: 'https://cubi19uqac2.finch4.xyz/' + method,/*location.protocol + '//localhost:8005/' + method,*/
@@ -90,8 +90,8 @@ $(function() {
 			case "TailZone":
 				$.ajax(requests.setTailZone);
 				break;
-			case "BodyZone":
-				$.ajax(requests.setBodyZone);
+			case "ChestZone":
+				$.ajax(requests.setChestZone);
 				break;
 			default:
 				twitch.rig.log("dafuq");
