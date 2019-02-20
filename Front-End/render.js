@@ -16,14 +16,14 @@ var createScene = function () {
 
 	//Adding an Arc Rotate Camera
 	var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 10, BABYLON.Vector3.Zero(), scene);
-	camera.setPosition(new BABYLON.Vector3(-201,98,-192));
-	camera.attachControl(canvas, false);
+	scene.activeCamera.target = new BABYLON.Vector3(0, 0, 0);
+	scene.activeCamera.setPosition(new BABYLON.Vector3(-201,98,-192));
+	scene.activeCamera.panningSensibility = 80;
+	scene.activeCamera.wheelPrecision = 1;
+	scene.activeCamera.attachControl(canvas, false);
 
 	// The first parameter can be used to specify which mesh to import. Here we import all meshes
 	BABYLON.SceneLoader.Append("./assets/", "Zones.gltf", scene, function (scene) {
-		scene.activeCamera = null;
-		scene.createDefaultCameraOrLight(true);
-		scene.activeCamera.attachControl(canvas, false);
 	});
 	
 	scene.meshes.forEach(function(mesh)

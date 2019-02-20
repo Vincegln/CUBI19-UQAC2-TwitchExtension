@@ -14,7 +14,7 @@ var requests = {
     setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
     setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
     setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
-	setChestZone: createRequest('POST', 'cubi/ChestZone', displayTotalVotes),
+	setChestZone: createRequest('POST', 'cubi/ChestZone', displayTotalVotes)
 };
 
 function createRequest(type, method, successMethod) {
