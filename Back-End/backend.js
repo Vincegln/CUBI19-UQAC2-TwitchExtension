@@ -26,7 +26,7 @@ const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
 var votes = {};
-var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "BodyZone": 0}
+var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "ChestZone": 0}
 var mostVoted = "Empty";
 var maxVotes = 0;
 var nbVotes = 0;
@@ -126,8 +126,8 @@ const server = new Hapi.Server(serverOptions);
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/BodyZone',
-    handler: bodyZoneButtonHandler,
+    path: '/cubi/ChestZone',
+    handler: chestZoneButtonHandler,
   });
 
     // Handle a new viewer requesting the color.
@@ -309,7 +309,7 @@ function tailZoneButtonHandler(req) {
   return nbVotes;
 }
 
-function bodyZoneButtonHandler(req) {
+function chestZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
@@ -319,7 +319,7 @@ function bodyZoneButtonHandler(req) {
 	  totalVotes[votes[opaqueUserId]]-=1;
 	  nbVotes--;
   }
-  votes[opaqueUserId]="BodyZone";
+  votes[opaqueUserId]="ChestZone";
   totalVotes[votes[opaqueUserId]]+=1;
   
   nbVotes++;
@@ -346,7 +346,7 @@ function voteResultHandler(req){
 
 function resetVoteHandler(req){
     votes = {};
-	totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "BodyZone": 0}
+	totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "ChestZone": 0}
 	mostVoted = "Empty";
 	maxVotes = 0;
 	nbVotes = 0;

@@ -14,7 +14,7 @@ var requests = {
     setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
     setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
     setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
-	setBodyZone: createRequest('POST', 'cubi/BodyZone', displayTotalVotes),
+	setChestZone: createRequest('POST', 'cubi/ChestZone', displayTotalVotes),
 };
 
 function createRequest(type, method, successMethod) {
@@ -90,8 +90,8 @@ $(function() {
 			case "TailZone":
 				$.ajax(requests.setTailZone);
 				break;
-			case "BodyZone":
-				$.ajax(requests.setBodyZone);
+			case "ChestZone":
+				$.ajax(requests.setChestZone);
 				break;
 			default:
 				twitch.rig.log("dafuq");

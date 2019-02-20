@@ -12,16 +12,26 @@ var createScene = function () {
 	//Adding a light
 	var light = new BABYLON.HemisphericLight();
 
+	canvas.setAttribute("touch-action", "none");
+
 	//Adding an Arc Rotate Camera
 	var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 10, BABYLON.Vector3.Zero(), scene);
+	camera.setPosition(new BABYLON.Vector3(-201,98,-192));
 	camera.attachControl(canvas, false);
 
 	// The first parameter can be used to specify which mesh to import. Here we import all meshes
-	BABYLON.SceneLoader.Append("./assets/", "Boss_Zones.gltf", scene, function (scene) {
+	BABYLON.SceneLoader.Append("./assets/", "Zones.gltf", scene, function (scene) {
 		scene.activeCamera = null;
 		scene.createDefaultCameraOrLight(true);
 		scene.activeCamera.attachControl(canvas, false);
 	});
+	
+	scene.meshes.forEach(function(mesh)
+	{
+		mesh.material.backFaceCulling = false;
+		mesh.material.needDepthPrePass = true;
+		mesh.material.alphaMode = "OPAQUE";
+	})
 	
 	scene.clearColor = new BABYLON.Color4(0,0,0,0.0000000000000001);
 
@@ -31,19 +41,22 @@ var createScene = function () {
 
 var scene = createScene(); //Call the createScene function
 
-scene.debugLayer.show();
-
 scene.onPointerPick = function (evt, pickInfo) {
-	if(previouslySelected)
+	if(!pickInfo.pickedMesh.name.startsWith("NoZone"))
 	{
-		previouslySelected.material = previousMaterial;
+		if(previouslySelected)
+		{
+			previouslySelected.material = previousMaterial;
+		}
+		previouslySelected = pickInfo.pickedMesh;
+		meshName = pickInfo.pickedMesh.name;
+		previousMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
+		materialPicked = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
+		materialPicked.emissiveColor = new BABYLON.Color3.Green();
+		materialPicked.emissiveIntensity = 0.1;
+		materialPicked.directIntensity = 5.0;
+		pickInfo.pickedMesh.material = materialPicked;
 	}
-	previouslySelected = pickInfo.pickedMesh;
-	meshName = pickInfo.pickedMesh.name;
-	previousMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
-	materialPicked = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
-	materialPicked.albedoColor = new BABYLON.Color3.Green();
-	pickInfo.pickedMesh.material = materialPicked;
 };
 
 // Register a render loop to repeatedly render the scene
