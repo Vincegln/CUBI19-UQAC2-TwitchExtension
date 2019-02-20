@@ -18,8 +18,10 @@ var createScene = function () {
 	var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 10, BABYLON.Vector3.Zero(), scene);
 	scene.activeCamera.target = new BABYLON.Vector3(0, 50, 0);
 	scene.activeCamera.setPosition(new BABYLON.Vector3(-201,98,-192));
-	scene.activeCamera.panningSensibility = 60;
+	if(platform == "web"){
+		scene.activeCamera.panningSensibility = 60;
 	scene.activeCamera.wheelPrecision = 1;
+	}
 	scene.activeCamera.attachControl(canvas, false);
 	scene.activeCamera.lowerRadiusLimit = 180;
 
