@@ -26,8 +26,9 @@ var createScene = function () {
 	// The first parameter can be used to specify which mesh to import. Here we import all meshes
 	BABYLON.SceneLoader.Append("./assets/", "Zones.gltf", scene, function (scene) {
 	});
-	
-	scene.clearColor = new BABYLON.Color4(0,0,0,0.0000000000000001);
+
+	//--------------------------------------------------------------------------------SET BACKGROUND COLOR (RGBA)
+	scene.clearColor = new BABYLON.Color4(0,0,0,1);
 
 	return scene;
 }
