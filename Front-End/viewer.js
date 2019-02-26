@@ -3,6 +3,9 @@ var tuid = "";
 var ebs = "";
 var meshName = "";
 
+let params = (new URL(document.location)).searchParams;
+let platform = params.get("platform");
+
 // because who wants to type this every time?
 var twitch = window.Twitch.ext;
 
