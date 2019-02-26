@@ -51,7 +51,6 @@ scene.onPointerPick = function (evt, pickInfo) {
 		meshName = pickInfo.pickedMesh.name;
 		previousMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
 		materialPicked = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
-		//materialPicked.albedoColor = new BABYLON.Color3(0,10,0);
 		materialPicked.emissiveColor = new BABYLON.Color3(208,147,2);
 		materialPicked.emissiveIntensity = 0.0005;
 		materialPicked.directIntensity = 5.0;
@@ -75,7 +74,10 @@ $(function() {
 		{
 			if(validatedPart)
 			{
-				validatedPart.material = validatedMaterial;
+				if(validatedPart.name != meshName)
+				{
+					validatedPart.material = validatedMaterial;
+				}
 			}
 			materialPicked.emissiveColor = new BABYLON.Color3.Green;
 			materialPicked.emissiveIntensity = 0.1;
