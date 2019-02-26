@@ -3,6 +3,8 @@ var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 
 var previouslySelected;
 var previousMaterial;
+var validatedMaterial;
+var validatedPart;
 
 /******* Add the create scene function ******/
 var createScene = function () {
@@ -30,7 +32,7 @@ var createScene = function () {
 	});
 
 	//--------------------------------------------------------------------------------SET BACKGROUND COLOR (RGBA)
-	scene.clearColor = new BABYLON.Color4(0,0,0,1);
+	scene.clearColor = new BABYLON.Color4(0,0,0,0.0000000000001);
 
 	return scene;
 }
@@ -39,7 +41,6 @@ var createScene = function () {
 var scene = createScene(); //Call the createScene function
 
 scene.onPointerPick = function (evt, pickInfo) {
-	
 	if(!pickInfo.pickedMesh.name.startsWith("NoZone"))
 	{
 		if(previouslySelected)
@@ -50,8 +51,9 @@ scene.onPointerPick = function (evt, pickInfo) {
 		meshName = pickInfo.pickedMesh.name;
 		previousMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
 		materialPicked = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
-		materialPicked.emissiveColor = new BABYLON.Color3.Green();
-		materialPicked.emissiveIntensity = 0.1;
+		//materialPicked.albedoColor = new BABYLON.Color3(0,10,0);
+		materialPicked.emissiveColor = new BABYLON.Color3(208,147,2);
+		materialPicked.emissiveIntensity = 0.0005;
 		materialPicked.directIntensity = 5.0;
 		pickInfo.pickedMesh.material = materialPicked;
 	}
@@ -65,4 +67,23 @@ engine.runRenderLoop(function () {
 // Watch for browser/canvas resize events
 window.addEventListener("resize", function () { 
 		engine.resize();
+});
+
+$(function() {
+	$('#SelectZone').click(function() {
+		if(previouslySelected)
+		{
+			if(validatedPart)
+			{
+				validatedPart.material = validatedMaterial;
+			}
+			materialPicked.emissiveColor = new BABYLON.Color3.Green;
+			materialPicked.emissiveIntensity = 0.1;
+			materialPicked.directIntensity = 10.0;
+			validatedPart = previouslySelected;
+			validatedMaterial = previousMaterial;
+			previouslySelected = null;
+			previousMaterial = null;
+		}
+	});
 });
