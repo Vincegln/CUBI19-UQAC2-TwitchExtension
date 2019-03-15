@@ -5,8 +5,8 @@
   "extensionViews": [
     {
       "id": "1",
-      "label": "test",
-      "channelId": "265737932",
+      "label": "",
+      "channelId": "80173033",
       "type": "component",
       "features": {
         "isChatEnabled": false

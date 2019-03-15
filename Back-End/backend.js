@@ -25,8 +25,7 @@ const channelColors = {};
 const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
-var votes = {};
-var totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "ChestZone": 0}
+var streams = {};
 var mostVoted = "Empty";
 var maxVotes = 0;
 var nbVotes = 0;
@@ -84,8 +83,27 @@ const server = new Hapi.Server(serverOptions);
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
-    path: '/cubi/HeadZone',
-    handler: headZoneButtonHandler,
+    path: '/cubi/streamInit',
+    handler: streamInitHandler,
+  });
+
+  server.route({
+    method: 'POST',
+    path: '/cubi/streamDelete',
+    handler: streamDeleteHandler,
+  });
+
+  // Handle a new viewer requesting the color.
+  server.route({
+    method: 'POST',
+    path: '/cubi/voteResult',
+    handler: voteResultHandler,
+  });
+
+  server.route({
+    method: 'POST',
+    path: '/cubi/resetVote',
+    handler: resetVoteHandler,
   });
 
   // Handle a viewer request to cycle the color.
@@ -128,19 +146,6 @@ const server = new Hapi.Server(serverOptions);
     method: 'POST',
     path: '/cubi/ChestZone',
     handler: chestZoneButtonHandler,
-  });
-
-    // Handle a new viewer requesting the color.
-  server.route({
-      method: 'GET',
-      path: '/cubi/voteResult',
-      handler: voteResultHandler,
-  });
-
-  server.route({
-      method: 'GET',
-      path: '/cubi/resetVote',
-      handler: resetVoteHandler,
   });
 
   server.route({
@@ -200,40 +205,95 @@ function verifyAndDecode(header) {
   throw Boom.unauthorized(STRINGS.invalidAuthHeader);
 }
 
-function headZoneButtonHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
-  
-  if(votes[opaqueUserId]!=null)
-  {
-	  totalVotes[votes[opaqueUserId]]-=1;
-	  nbVotes--;
-  }
-  votes[opaqueUserId]="HeadZone";
-  totalVotes[votes[opaqueUserId]]+=1;
-  
-  nbVotes++;
+/*
+* Game <-> Server communications
+*
+*/
 
-  return nbVotes;
+function streamInitHandler(req) {
+  const channelId = req.payload;
+
+  if(streams[channelId]!=null)
+  {
+    delete streams[channelId];
+  }
+
+  streams[channelId] = {};
+  streams[channelId]["votes"] = {};
+  streams[channelId]["totalVotes"] = {"LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "ChestZone": 0};
+  streams[channelId]["mostVoted"] = "Empty";
+  streams[channelId]["maxVotes"] = 0;
+  streams[channelId]["nbVotes"] = 0;
+  //TODO : Custom PUBSUB to enable extension view
+
+  console.log(req.payload+" info created");
+
+  return req.payload+" info created";
 }
+
+function streamDeleteHandler(req) {
+  delete streams[req.payload];
+
+  console.log(req.payload+" info deleted");
+
+  return req.payload+" info deleted";
+}
+
+function voteResultHandler(req){
+  var channelId = req.payload;
+
+  streams[channelId]["mostVoted"] = "Empty";
+  streams[channelId]["maxVotes"] = 0;
+
+  for(var vote in streams[channelId]["totalVotes"])
+  {
+    if(streams[channelId]["totalVotes"][vote] > streams[channelId]["maxVotes"])
+    {
+      streams[channelId]["maxVotes"] = streams[channelId]["totalVotes"][vote];
+      streams[channelId]["mostVoted"] = vote;
+    }
+  }
+
+  console.log(req.payload+" votes requested");
+
+  return streams[channelId]["mostVoted"]+","+streams[channelId]["nbVotes"];
+}
+
+function resetVoteHandler(req){
+  var channelId = req.payload;
+
+  streams[channelId]["votes"] = {};
+  streams[channelId]["totalVotes"] = {"LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "ChestZone": 0};
+  streams[channelId]["mostVoted"] = "Empty";
+  streams[channelId]["maxVotes"] = 0;
+  streams[channelId]["nbVotes"] = 0;
+
+  console.log(req.payload+" votes reset");
+
+  return "Reset completed for "+channelId;
+}
+
+/*
+* Twitch Extension <-> Server communications
+*
+*/
 
 function lFLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  if(votes[opaqueUserId]!=null)
+  if(streams[channelId]["votes"][opaqueUserId]!=null)
   {
-	  totalVotes[votes[opaqueUserId]]-=1;
-	  nbVotes--;
+    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
+    streams[channelId]["nbVotes"]--;
   }
-  votes[opaqueUserId]="LFLegZone";
-  totalVotes[votes[opaqueUserId]]+=1;
-  
-  nbVotes++;
+  streams[channelId]["votes"][opaqueUserId]="LFLegZone";
+  streams[channelId]["totalVotes"]["LFLegZone"]++;
 
-  return nbVotes;
+  streams[channelId]["nbVotes"]++;
+
+  return streams[channelId]["nbVotes"];
 }
 
 function lBLegZoneButtonHandler(req) {
@@ -241,17 +301,17 @@ function lBLegZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  if(votes[opaqueUserId]!=null)
+  if(streams[channelId]["votes"][opaqueUserId]!=null)
   {
-	  totalVotes[votes[opaqueUserId]]-=1;
-	  nbVotes--;
+    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
+    streams[channelId]["nbVotes"]--;
   }
-  votes[opaqueUserId]="LBLegZone";
-  totalVotes[votes[opaqueUserId]]+=1;
-  
-  nbVotes++;
+  streams[channelId]["votes"][opaqueUserId]="LBLegZone";
+  streams[channelId]["totalVotes"]["LBLegZone"]++;
 
-  return nbVotes;
+  streams[channelId]["nbVotes"]++;
+
+  return streams[channelId]["nbVotes"];
 }
 
 function rFLegZoneButtonHandler(req) {
@@ -259,17 +319,17 @@ function rFLegZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  if(votes[opaqueUserId]!=null)
+  if(streams[channelId]["votes"][opaqueUserId]!=null)
   {
-	  totalVotes[votes[opaqueUserId]]-=1;
-	  nbVotes--;
+    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
+    streams[channelId]["nbVotes"]--;
   }
-  votes[opaqueUserId]="RFLegZone";
-  totalVotes[votes[opaqueUserId]]+=1;
-  
-  nbVotes++;
+  streams[channelId]["votes"][opaqueUserId]="RFLegZone";
+  streams[channelId]["totalVotes"]["RFLegZone"]++;
 
-  return nbVotes;
+  streams[channelId]["nbVotes"]++;
+
+  return streams[channelId]["nbVotes"];
 }
 
 function rBLegZoneButtonHandler(req) {
@@ -277,17 +337,17 @@ function rBLegZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  if(votes[opaqueUserId]!=null)
+  if(streams[channelId]["votes"][opaqueUserId]!=null)
   {
-	  totalVotes[votes[opaqueUserId]]-=1;
-	  nbVotes--;
+    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
+    streams[channelId]["nbVotes"]--;
   }
-  votes[opaqueUserId]="RBLegZone";
-  totalVotes[votes[opaqueUserId]]+=1;
-  
-  nbVotes++;
+  streams[channelId]["votes"][opaqueUserId]="RBLegZone";
+  streams[channelId]["totalVotes"]["RBLegZone"]++;
 
-  return nbVotes;
+  streams[channelId]["nbVotes"]++;
+
+  return streams[channelId]["nbVotes"];
 }
 
 function tailZoneButtonHandler(req) {
@@ -295,18 +355,17 @@ function tailZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  if(votes[opaqueUserId]!=null)
+  if(streams[channelId]["votes"][opaqueUserId]!=null)
   {
-	  totalVotes[votes[opaqueUserId]]-=1;
-	  nbVotes--;
+    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
+    streams[channelId]["nbVotes"]--;
   }
-  votes[opaqueUserId]="TailZone";
-  totalVotes[votes[opaqueUserId]]+=1;
-  
-  nbVotes++;
+  streams[channelId]["votes"][opaqueUserId]="TailZone";
+  streams[channelId]["totalVotes"]["TailZone"]++;
 
-  // return req.headers.data.content;
-  return nbVotes;
+  streams[channelId]["nbVotes"]++;
+
+  return streams[channelId]["nbVotes"];
 }
 
 function chestZoneButtonHandler(req) {
@@ -314,44 +373,17 @@ function chestZoneButtonHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-  if(votes[opaqueUserId]!=null)
+  if(streams[channelId]["votes"][opaqueUserId]!=null)
   {
-	  totalVotes[votes[opaqueUserId]]-=1;
-	  nbVotes--;
+    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
+    streams[channelId]["nbVotes"]--;
   }
-  votes[opaqueUserId]="ChestZone";
-  totalVotes[votes[opaqueUserId]]+=1;
-  
-  nbVotes++;
+  streams[channelId]["votes"][opaqueUserId]="ChestZone";
+  streams[channelId]["totalVotes"]["ChestZone"]++;
 
-  // return req.headers.data.content;
-  return nbVotes;
-}
+  streams[channelId]["nbVotes"]++;
 
-function voteResultHandler(req){
-	maxVotes = 0;
-	mostVoted = "Empty";
-	
-	for(var vote in totalVotes)
-	{
-		if(totalVotes[vote] > maxVotes)
-		{
-			maxVotes = totalVotes[vote];
-			mostVoted = vote;
-		}
-	}
-
-	return mostVoted;
-}
-
-function resetVoteHandler(req){
-    votes = {};
-	totalVotes = {"HeadZone": 0, "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "ChestZone": 0}
-	mostVoted = "Empty";
-	maxVotes = 0;
-	nbVotes = 0;
-	
-	return "Reset completed";
+  return streams[channelId]["nbVotes"];
 }
 
 // Create and return a JWT for use by this service.
