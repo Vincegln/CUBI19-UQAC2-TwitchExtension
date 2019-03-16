@@ -256,7 +256,7 @@ function voteResultHandler(req){
 
   console.log(req.payload+" votes requested");
 
-  return streams[channelId]["mostVoted"]+","+streams[channelId]["nbVotes"];
+  return streams[channelId]["mostVoted"]+","+streams[channelId]["nbVotes"]+","+streams[channelId]["maxVotes"];
 }
 
 function resetVoteHandler(req){
