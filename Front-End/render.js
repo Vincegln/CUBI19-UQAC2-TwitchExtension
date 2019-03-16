@@ -32,7 +32,7 @@ var createScene = function () {
 	scene.activeCamera.setPosition(new BABYLON.Vector3(-201,98,-192));
 	
 	// Change active camera settings whether you are on a browser or a mobile device
-	if(platform == "web"){
+	if(platform === "web"){
 		scene.activeCamera.panningSensibility = 60;
 	scene.activeCamera.wheelPrecision = 1;
 	}
@@ -51,7 +51,7 @@ var createScene = function () {
 	scene.clearColor = new BABYLON.Color4(0,0,0,0);
 
 	return scene;
-}
+};
 
 // Create the scene
 var scene = createScene(); 
@@ -62,30 +62,53 @@ scene.onPointerPick = function (evt, pickInfo) {
 	// Check if the mesh is selectable
 	if(!pickInfo.pickedMesh.name.startsWith("NoZone"))
 	{
+		//Check if a mesh as already been selected
 		if(actuallySelected)
 		{
-			actuallySelected.material = savedMaterial;
+			if(actuallySelected === validatedPart)
+			{
+				//Reset the previously selected mesh to validated material
+				tempMaterial.emissiveColor = new BABYLON.Color3.Green;
+				tempMaterial.emissiveIntensity = 0.1;
+				tempMaterial.directIntensity = 10.0;
+			}
+			else
+			{
+				//Reset the previously selected mesh with its original material
+				actuallySelected.material = savedMaterial;
+			}
 		}
+
+		//Update the selected mesh value
 		actuallySelected = pickInfo.pickedMesh;
+
+		//Update the selected mesh name value
 		meshName = pickInfo.pickedMesh.name;
-		if(validatedPart && validatedPart.name==meshName)
+
+		//Check if a validated part exists and is the one actually selected
+		if(validatedPart && validatedPart === actuallySelected)
 		{
+			//Sync original materials for the validated/selected part
 			savedMaterial = validatedMaterial;
 		}
 		else
 		{
+			//Save a copy of the original mesh to savedMaterial
 			savedMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
 		}
+		//Get a copy original mesh for modifications
 		tempMaterial = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
+		//Add a sandy emissive color
 		tempMaterial.emissiveColor = new BABYLON.Color3(208,147,2);
 		tempMaterial.emissiveIntensity = 0.0005;
 		tempMaterial.directIntensity = 5.0;
+		//Updating material
 		pickInfo.pickedMesh.material = tempMaterial;
 	}
 };
 
 // Register a render loop to repeatedly render the scene
-engine.runRenderLoop(function () { 
+engine.runRenderLoop(function () {
 		scene.render();
 });
 
@@ -96,21 +119,30 @@ window.addEventListener("resize", function () {
 
 $(function() {
 	$('#SelectZone').click(function() {
+		//Check if a mesh is selected
 		if(actuallySelected)
 		{
+			//Check if a mesh has already been validated
 			if(validatedPart)
 			{
+				//Check if the last validated part is different from the actually selected part
 				if(validatedPart.name !== meshName)
 				{
+					//Reset the last validated part to its original material
 					validatedPart.material = validatedMaterial;
 				}
 			}
+			//Add a greenish emissive color
 			tempMaterial.emissiveColor = new BABYLON.Color3.Green;
 			tempMaterial.emissiveIntensity = 0.1;
 			tempMaterial.directIntensity = 10.0;
+			//Update the validated part value
 			validatedPart = actuallySelected;
+			//Sync the original material between validated and saved materials
 			validatedMaterial = savedMaterial;
+			//Reset the actually selected value
 			actuallySelected = null;
+			//Reset the actually selected material value
 			savedMaterial = null;
 		}
 	});
