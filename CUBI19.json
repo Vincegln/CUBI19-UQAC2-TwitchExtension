@@ -22,6 +22,27 @@
         "width": 640,
         "height": 480
       }
+    },
+    {
+      "id": "2",
+      "label": "",
+      "channelId": "265737932",
+      "type": "mobile",
+      "features": {
+        "isChatEnabled": false
+      },
+      "linked": false,
+      "linkedUserId": "",
+      "mode": "viewer",
+      "isPopout": false,
+      "role": "Logged-In Viewer",
+      "x": 0,
+      "y": 0,
+      "orientation": "Portrait",
+      "frameSize": {
+        "width": 360,
+        "height": 740
+      }
     }
   ],
   "frontendCommand": "",
