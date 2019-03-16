@@ -54,7 +54,9 @@ var createScene = function () {
 };
 
 // Create the scene
-var scene = createScene(); 
+var scene = createScene();
+
+scene.registerBeforeRender(function() {   scene.activeCamera.alpha += 0.0005;});
 
 // Callback for clicking/taping on a mesh
 scene.onPointerPick = function (evt, pickInfo) {
