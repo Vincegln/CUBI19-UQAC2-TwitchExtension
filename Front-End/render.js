@@ -31,12 +31,6 @@ var createScene = function () {
 	// Set the active camera position
 	scene.activeCamera.setPosition(new BABYLON.Vector3(-201,98,-192));
 	
-	// Change active camera settings whether you are on a browser or a mobile device
-	if(platform === "web"){
-		scene.activeCamera.panningSensibility = 60;
-	scene.activeCamera.wheelPrecision = 1;
-	}
-	
 	// Set the controls attached to the camera
 	scene.activeCamera.attachControl(canvas, false);
 	
@@ -44,7 +38,7 @@ var createScene = function () {
 	scene.activeCamera.lowerRadiusLimit = 180;
 
 	// The first parameter can be used to specify which mesh to import. Here we import all meshes
-	BABYLON.SceneLoader.Append("./assets/", "Zones.gltf", scene, function (scene) {
+	BABYLON.SceneLoader.Append("./assets/", "Zones.gltf", scene, function (loadedMeshes) {
 	});
 
 	// Set the Background color (RGBA)
@@ -60,13 +54,74 @@ var createScene = function () {
 	skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
 	skybox.material = skyboxMaterial;
 
+	// Change active camera settings whether you are on a browser or a mobile device
+	if(platform === "web"){
+		scene.activeCamera.panningSensibility = 60;
+		scene.activeCamera.wheelPrecision = 1;
+	}
+	else if(platform === "mobile")
+	{
+		var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		advancedTexture.layer.layerMask = 2;
+
+		var sliderAlphaPanel = new BABYLON.GUI.StackPanel();
+		sliderAlphaPanel.height = "30px";
+		sliderAlphaPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		sliderAlphaPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		advancedTexture.addControl(sliderAlphaPanel);
+
+		var sliderAlpha = new BABYLON.GUI.Slider();
+		sliderAlpha.minimum = 0;
+		sliderAlpha.maximum = 2 * Math.PI;
+		sliderAlpha.color = "#faba3d";
+		sliderAlpha.background = "#e2e2e2";
+		sliderAlpha.value = 2.25;
+		sliderAlpha.height = "40px";
+		sliderAlpha.width = "200px";
+		sliderAlpha.paddingTop = "10px";
+		sliderAlpha.isThumbClamped = true;
+		sliderAlpha.onValueChangedObservable.add(function(value) {
+			scene.activeCamera.alpha = -value;
+		});
+		sliderAlphaPanel.addControl(sliderAlpha);
+
+		var sliderBetaPanel = new BABYLON.GUI.StackPanel();
+		sliderBetaPanel.width = "20px";
+		sliderBetaPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+		sliderBetaPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+		advancedTexture.addControl(sliderBetaPanel);
+
+		var sliderBeta = new BABYLON.GUI.Slider();
+		sliderBeta.isVertical = true;
+		sliderBeta.minimum = 0;
+		sliderBeta.maximum = Math.PI;
+		sliderBeta.color = "#faba3d";
+		sliderBeta.background = "#e2e2e2";
+		sliderBeta.value = scene.activeCamera.beta;
+		sliderBeta.height = "200px";
+		sliderBeta.width = "40px";
+		sliderBeta.isThumbClamped = true;
+		sliderBeta.onValueChangedObservable.add(function(value) {
+			scene.activeCamera.beta = value;
+		});
+		sliderBetaPanel.addControl(sliderBeta);
+
+		scene.activeCamera.inputs.clear();
+	}
+
 	return scene;
 };
 
 // Create the scene
 var scene = createScene();
 
-scene.registerBeforeRender(function() {   scene.activeCamera.alpha += 0.0005;});
+scene.registerBeforeRender(function()
+{
+	if(platform === "web")
+	{
+		scene.activeCamera.alpha += 0.0005;
+	}
+});
 
 // Callback for clicking/taping on a mesh
 scene.onPointerPick = function (evt, pickInfo) {
