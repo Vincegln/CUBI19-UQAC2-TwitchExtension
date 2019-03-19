@@ -6,6 +6,7 @@ var tutoMask; // Black masking for the 3D Model
 var countdownTimer;
 var countdownText;
 var countdownCounter = 6;
+var aBR;
 
 var actuallySelected; // Mesh actually selected
 var savedMaterial; // Original material of the mesh actually selected
@@ -21,7 +22,7 @@ var createScene = function () {
 	document.getElementsByTagName("body")[0].setAttribute("oncontextmenu", "return false");
 	
 	// Initialize the scene
-	var scene = new BABYLON.Scene(engine); 
+	var scene = new BABYLON.Scene(engine);
 
 	// Adding a light
 	var light = new BABYLON.HemisphericLight(); 
@@ -69,6 +70,15 @@ var createScene = function () {
 		scene.activeCamera.panningSensibility = 60;
 		scene.activeCamera.wheelPrecision = 1;
 
+		//
+		aBR = new BABYLON.AutoRotationBehavior();
+		aBR.idleRotationSpeed = -0.15;
+		aBR.idleRotationWaitTime = 2000;
+		aBR.idleRotationSpinupTime = 500;
+		aBR.attach(scene.activeCamera);
+		scene.activeCamera.useAutoRotationBehavior = true;
+
+		//
 		countdownText = new BABYLON.GUI.TextBlock();
 		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
@@ -136,14 +146,6 @@ var createScene = function () {
 // Create the scene
 var scene = createScene();
 
-scene.registerBeforeRender(function()
-{
-	if(platform === "web")
-	{
-		scene.activeCamera.alpha += 0.001;
-	}
-});
-
 // Callback for clicking/taping on a mesh
 scene.onPointerPick = function (evt, pickInfo) {
 	
@@ -205,12 +207,14 @@ window.addEventListener("resize", function () {
 		engine.resize();
 });
 
+//
 function removeTutoMask(){
 	advancedTexture.removeControl(tutoMask);
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', false);
 }
 
+//
 function updateCountdown(){
 	if(countdownCounter === 0)
 	{
@@ -219,19 +223,31 @@ function updateCountdown(){
 		var selectZone = $('#SelectZone');
 		selectZone.prop('disabled', true);
 		countdownCounter = 6;
+		scene.activeCamera.panningSensibility = 1000000;
+		scene.activeCamera.angularSensibilityX = 1000000;
+		scene.activeCamera.angularSensibilityY = 1000000;
+		aBR.idleRotationSpeed = 0;
+		scene.activeCamera.useAutoRotationBehavior = false;
 	}else{
 		countdownCounter--;
 		countdownText.text = countdownCounter.toString();
 	}
 }
 
+//
 function startCountdown(){
 	countdownTimer = window.setInterval(updateCountdown,1000);
 }
 
+//
 function enableVote(){
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', false);
+	scene.activeCamera.panningSensibility = 1;
+	scene.activeCamera.angularSensibilityX = 1;
+	scene.activeCamera.angularSensibilityY = 1;
+	aBR.idleRotationSpeed = -0.15;
+	scene.activeCamera.useAutoRotationBehavior = true;
 }
 
 $(function() {
