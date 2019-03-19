@@ -7,6 +7,13 @@ var countdownTimer;
 var countdownText;
 var countdownCounter = 6;
 var aBR;
+var blurH;
+var blurV;
+var disablePointerInput = true;
+
+var defaultPanningSensibility;
+var defaultAngularSensibilityX;
+var defaultAngularSensibilityY;
 
 var actuallySelected; // Mesh actually selected
 var savedMaterial; // Original material of the mesh actually selected
@@ -140,6 +147,16 @@ var createScene = function () {
 	tutoMask.background = "black";
 	advancedTexture.addControl(tutoMask);
 
+    blurH = new BABYLON.BlurPostProcess("Horizontal blur", new BABYLON.Vector2(1.0, 0), 32.0, 1.0, scene.activeCamera);
+    blurV = new BABYLON.BlurPostProcess("Vertical blur", new BABYLON.Vector2(0, 1.0), 32.0, 1.0, scene.activeCamera);
+
+    scene.activeCamera.detachPostProcess(blurH);
+    scene.activeCamera.detachPostProcess(blurV);
+
+    defaultPanningSensibility = scene.activeCamera.panningSensibility;
+    defaultAngularSensibilityX = scene.activeCamera.angularSensibilityX;
+    defaultAngularSensibilityY = scene.activeCamera.angularSensibilityY;
+
 	return scene;
 };
 
@@ -148,53 +165,58 @@ var scene = createScene();
 
 // Callback for clicking/taping on a mesh
 scene.onPointerPick = function (evt, pickInfo) {
-	
-	// Check if the mesh is selectable
-	if(!pickInfo.pickedMesh.name.startsWith("NoZone") && !pickInfo.pickedMesh.name.startsWith("skyBox"))
-	{
-		//Check if a mesh as already been selected
-		if(actuallySelected)
-		{
-			if(actuallySelected === validatedPart)
-			{
-				//Reset the previously selected mesh to validated material
-				tempMaterial.emissiveColor = new BABYLON.Color3.Green;
-				tempMaterial.emissiveIntensity = 0.1;
-				tempMaterial.directIntensity = 10.0;
-			}
-			else
-			{
-				//Reset the previously selected mesh with its original material
-				actuallySelected.material = savedMaterial;
-			}
-		}
+	if (disablePointerInput) {}
+	else {
+        // Check if the mesh is selectable
+        if(!pickInfo.pickedMesh.name.startsWith("NoZone") && !pickInfo.pickedMesh.name.startsWith("skyBox"))
+        {
+            //Check if a mesh as already been selected
+            if(actuallySelected)
+            {
+                if(actuallySelected === validatedPart)
+                {
+                    //Reset the previously selected mesh to validated material
+                    tempMaterial.emissiveColor = new BABYLON.Color3.Green;
+                    tempMaterial.emissiveIntensity = 0.1;
+                    tempMaterial.directIntensity = 10.0;
+                }
+                else
+                {
+                    //Reset the previously selected mesh with its original material
+                    actuallySelected.material = savedMaterial;
+                }
+            }
 
-		//Update the selected mesh value
-		actuallySelected = pickInfo.pickedMesh;
+            //Update the selected mesh value
+            actuallySelected = pickInfo.pickedMesh;
 
-		//Update the selected mesh name value
-		meshName = pickInfo.pickedMesh.name;
+            //Update the selected mesh name value
+            meshName = pickInfo.pickedMesh.name;
 
-		//Check if a validated part exists and is the one actually selected
-		if(validatedPart && validatedPart === actuallySelected)
-		{
-			//Sync original materials for the validated/selected part
-			savedMaterial = validatedMaterial;
-		}
-		else
-		{
-			//Save a copy of the original mesh to savedMaterial
-			savedMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
-		}
-		//Get a copy original mesh for modifications
-		tempMaterial = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
-		//Add a sandy emissive color
-		tempMaterial.emissiveColor = new BABYLON.Color3(208,147,2);
-		tempMaterial.emissiveIntensity = 0.0005;
-		tempMaterial.directIntensity = 5.0;
-		//Updating material
-		pickInfo.pickedMesh.material = tempMaterial;
-	}
+            //Check if a validated part exists and is the one actually selected
+            if(validatedPart && validatedPart === actuallySelected)
+            {
+                //Sync original materials for the validated/selected part
+                savedMaterial = validatedMaterial;
+            }
+            else
+            {
+                //Save a copy of the original mesh to savedMaterial
+                savedMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
+            }
+
+            //Get a copy original mesh for modifications
+            tempMaterial = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
+
+            //Add a sandy emissive color
+            tempMaterial.emissiveColor = new BABYLON.Color3(208,147,2);
+            tempMaterial.emissiveIntensity = 0.0005;
+            tempMaterial.directIntensity = 5.0;
+
+            //Updating material
+            pickInfo.pickedMesh.material = tempMaterial;
+        }
+    }
 };
 
 // Register a render loop to repeatedly render the scene
@@ -212,6 +234,7 @@ function removeTutoMask(){
 	advancedTexture.removeControl(tutoMask);
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', false);
+	disablePointerInput = false;
 }
 
 //
@@ -228,6 +251,15 @@ function updateCountdown(){
 		scene.activeCamera.angularSensibilityY = 1000000;
 		aBR.idleRotationSpeed = 0;
 		scene.activeCamera.useAutoRotationBehavior = false;
+		scene.activeCamera.attachPostProcess(blurH);
+		scene.activeCamera.attachPostProcess(blurV);
+		disablePointerInput = true;
+        validatedPart.material = validatedMaterial;
+        actuallySelected.material = savedMaterial;
+        validatedPart = null;
+        validatedMaterial = null;
+        actuallySelected = null;
+        savedMaterial = null;
 	}else{
 		countdownCounter--;
 		countdownText.text = countdownCounter.toString();
@@ -243,11 +275,14 @@ function startCountdown(){
 function enableVote(){
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', false);
-	scene.activeCamera.panningSensibility = 1;
-	scene.activeCamera.angularSensibilityX = 1;
-	scene.activeCamera.angularSensibilityY = 1;
+	scene.activeCamera.panningSensibility = defaultPanningSensibility;
+	scene.activeCamera.angularSensibilityX = defaultAngularSensibilityX;
+	scene.activeCamera.angularSensibilityY = defaultAngularSensibilityY;
 	aBR.idleRotationSpeed = -0.15;
 	scene.activeCamera.useAutoRotationBehavior = true;
+    scene.activeCamera.detachPostProcess(blurH);
+    scene.activeCamera.detachPostProcess(blurV);
+    disablePointerInput = false;
 }
 
 $(function() {
