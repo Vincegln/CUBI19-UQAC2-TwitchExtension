@@ -68,6 +68,13 @@
             background-color: #976a02;
         }
 
+        #SelectZone:disabled {
+            background-color: grey;
+            color: lightgrey;
+            border: darkgrey;
+            cursor: not-allowed;
+        }
+
         #bottomZone {
             display: flex;
             flex-direction: column;
@@ -78,11 +85,17 @@
 
         /*For mobile display*/
         @media (max-width: 768px) {
+            body {
+                background-color: black;
+                opacity: 1.0;
+            }
             #helperText {
                 font-size: 3.0vw;
+                color: #fee8b3;
             }
             #SelectZone {
                 font-size: 3.0vw;
+                visibility: visible;
             }
         }
 
@@ -117,7 +130,7 @@
 <div>
     <wrapper id="bottomZone">
         <p id="helperText">Votez pour la partie du monstre que vous avez repérée comme étant un point faible. La plus votée sera transpercée d'une aiguille mystique et ainsi fragilisée pour le joueur</p>
-        <input type="button" id="SelectZone" disabled="disabled" value="Valider votre vote"/>
+        <input type="button" id="SelectZone" disabled="true" value="Valider votre vote"/>
     </wrapper>
 </div>
 

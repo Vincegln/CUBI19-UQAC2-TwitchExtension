@@ -24,9 +24,9 @@
       }
     },
     {
-      "id": "2",
+      "id": "4",
       "label": "",
-      "channelId": "265737932",
+      "channelId": "80173033",
       "type": "mobile",
       "features": {
         "isChatEnabled": false
@@ -40,29 +40,8 @@
       "y": 0,
       "orientation": "Portrait",
       "frameSize": {
-        "width": 360,
-        "height": 740
-      }
-    },
-    {
-      "id": "3",
-      "label": "",
-      "channelId": "265737932",
-      "type": "mobile",
-      "features": {
-        "isChatEnabled": false
-      },
-      "linked": false,
-      "linkedUserId": "",
-      "mode": "viewer",
-      "isPopout": false,
-      "role": "Broadcaster",
-      "x": 0,
-      "y": 0,
-      "orientation": "Portrait",
-      "frameSize": {
-        "width": "1440",
-        "height": "2960"
+        "width": 375,
+        "height": 667
       }
     }
   ],

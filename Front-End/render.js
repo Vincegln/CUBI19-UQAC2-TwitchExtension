@@ -1,6 +1,12 @@
 var canvas = document.getElementById("renderCanvas"); // Get the canvas element 
 var engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
 
+var advancedTexture; //GUI context
+var tutoMask; // Black masking for the 3D Model
+var countdownTimer;
+var countdownText;
+var countdownCounter = 6;
+
 var actuallySelected; // Mesh actually selected
 var savedMaterial; // Original material of the mesh actually selected
 var tempMaterial; // Temporary material used to alter the material of the actually selected mesh or the validated mesh
@@ -54,60 +60,75 @@ var createScene = function () {
 	skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
 	skybox.material = skyboxMaterial;
 
-	// Change active camera settings whether you are on a browser or a mobile device
+	//Instantiate the GUI
+	advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+	advancedTexture.layer.layerMask = 2;
+
+	// Change settings whether you are on a browser or a mobile device
 	if(platform === "web"){
 		scene.activeCamera.panningSensibility = 60;
 		scene.activeCamera.wheelPrecision = 1;
+
+		countdownText = new BABYLON.GUI.TextBlock();
+		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		countdownText.paddingBottom = 550;
+		countdownText.paddingLeft = 15;
+		countdownText.text = "";
+		countdownText.color = "#fee8b3";
+		countdownText.fontSize = 70;
+		countdownText.outlineWidth = 3;
+		countdownText.outlineColor = "black";
+		advancedTexture.addControl(countdownText);
 	}
 	else if(platform === "mobile")
 	{
-		var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-		advancedTexture.layer.layerMask = 2;
-
+		//Create a Panel
 		var sliderAlphaPanel = new BABYLON.GUI.StackPanel();
-		sliderAlphaPanel.height = "30px";
-		sliderAlphaPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-		sliderAlphaPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		sliderAlphaPanel.width = "20px";
+		sliderAlphaPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+		sliderAlphaPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 		advancedTexture.addControl(sliderAlphaPanel);
 
+		//Create a Slider to turn the model around
 		var sliderAlpha = new BABYLON.GUI.Slider();
+		sliderAlpha.isVertical = true;
 		sliderAlpha.minimum = 0;
 		sliderAlpha.maximum = 2 * Math.PI;
 		sliderAlpha.color = "#faba3d";
 		sliderAlpha.background = "#e2e2e2";
 		sliderAlpha.value = 2.25;
-		sliderAlpha.height = "40px";
-		sliderAlpha.width = "200px";
-		sliderAlpha.paddingTop = "10px";
+		sliderAlpha.height = "200px";
+		sliderAlpha.width = "40px";
 		sliderAlpha.isThumbClamped = true;
 		sliderAlpha.onValueChangedObservable.add(function(value) {
 			scene.activeCamera.alpha = -value;
 		});
 		sliderAlphaPanel.addControl(sliderAlpha);
 
-		var sliderBetaPanel = new BABYLON.GUI.StackPanel();
-		sliderBetaPanel.width = "20px";
-		sliderBetaPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-		sliderBetaPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-		advancedTexture.addControl(sliderBetaPanel);
+		countdownText = new BABYLON.GUI.TextBlock();
+		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		countdownText.paddingBottom = 225;
+		countdownText.paddingLeft = 15;
+		countdownText.text = "";
+		countdownText.color = "#fee8b3";
+		countdownText.fontSize = 24;
+		countdownText.outlineWidth = 3;
+		countdownText.outlineColor = "black";
+		advancedTexture.addControl(countdownText);
 
-		var sliderBeta = new BABYLON.GUI.Slider();
-		sliderBeta.isVertical = true;
-		sliderBeta.minimum = 0;
-		sliderBeta.maximum = Math.PI;
-		sliderBeta.color = "#faba3d";
-		sliderBeta.background = "#e2e2e2";
-		sliderBeta.value = scene.activeCamera.beta;
-		sliderBeta.height = "200px";
-		sliderBeta.width = "40px";
-		sliderBeta.isThumbClamped = true;
-		sliderBeta.onValueChangedObservable.add(function(value) {
-			scene.activeCamera.beta = value;
-		});
-		sliderBetaPanel.addControl(sliderBeta);
-
-		scene.activeCamera.inputs.clear();
+		//Prevent from using touch control while allowing touch selection
+		scene.activeCamera.panningSensibility = 1000000;
+		scene.activeCamera.angularSensibilityX = 1000000;
+		scene.activeCamera.angularSensibilityY = 1000000;
 	}
+
+	//Create a mask for the 3D model while in tuto phase
+	tutoMask = new BABYLON.GUI.Rectangle();
+	tutoMask.thickness = 0;
+	tutoMask.background = "black";
+	advancedTexture.addControl(tutoMask);
 
 	return scene;
 };
@@ -119,7 +140,7 @@ scene.registerBeforeRender(function()
 {
 	if(platform === "web")
 	{
-		scene.activeCamera.alpha += 0.0005;
+		scene.activeCamera.alpha += 0.001;
 	}
 });
 
@@ -183,6 +204,35 @@ engine.runRenderLoop(function () {
 window.addEventListener("resize", function () { 
 		engine.resize();
 });
+
+function removeTutoMask(){
+	advancedTexture.removeControl(tutoMask);
+	var selectZone = $('#SelectZone');
+	selectZone.prop('disabled', false);
+}
+
+function updateCountdown(){
+	if(countdownCounter === 0)
+	{
+		window.clearInterval(countdownTimer);
+		countdownText.text = "";
+		var selectZone = $('#SelectZone');
+		selectZone.prop('disabled', true);
+		countdownCounter = 6;
+	}else{
+		countdownCounter--;
+		countdownText.text = countdownCounter.toString();
+	}
+}
+
+function startCountdown(){
+	countdownTimer = window.setInterval(updateCountdown,1000);
+}
+
+function enableVote(){
+	var selectZone = $('#SelectZone');
+	selectZone.prop('disabled', false);
+}
 
 $(function() {
 	$('#SelectZone').click(function() {

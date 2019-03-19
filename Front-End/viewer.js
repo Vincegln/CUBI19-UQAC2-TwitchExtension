@@ -48,9 +48,6 @@ twitch.onAuthorized(function(auth) {
     token = auth.token;
     tuid = auth.userId;
 
-    // enable the buttons
-    $('#SelectZone').removeAttr('disabled');
-
     setAuth(token);
     $.ajax(requests.get);
 });
@@ -104,8 +101,19 @@ $(function() {
     });
 
     // listen for incoming broadcast message from our EBS
-    twitch.listen('broadcast', function (target, contentType, color) {
-        twitch.rig.log('Received broadcast color');
-        updateBlock(color);
+    twitch.listen('broadcast', function (target, contentType, message) {
+        switch (message) {
+            case "exitTuto" :
+                removeTutoMask();
+                break;
+            case "startCountdown" :
+                startCountdown();
+                break;
+            case "enableVote" :
+                enableVote();
+                break;
+            default:
+                break;
+        }
     });
 });

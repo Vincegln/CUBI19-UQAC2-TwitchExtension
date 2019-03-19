@@ -106,6 +106,29 @@ const server = new Hapi.Server(serverOptions);
     handler: resetVoteHandler,
   });
 
+  /*
+  * Twitch Extension <-> Server communications
+  *
+  */
+
+  server.route({
+    method: 'POST',
+    path: '/cubi/exitTuto',
+    handler: exitTutoHandler,
+  });
+
+  server.route({
+    method: 'POST',
+    path: '/cubi/startCountdown',
+    handler: startCountdownHandler,
+  });
+
+  server.route({
+    method: 'POST',
+    path: '/cubi/enableVote',
+    handler: enableVoteHandler,
+  });
+
   // Handle a viewer request to cycle the color.
   server.route({
     method: 'POST',
@@ -278,6 +301,27 @@ function resetVoteHandler(req){
 *
 */
 
+function exitTutoHandler(req){
+  var channelId = req.payload;
+
+  makePubSubMessage(channelId,"exitTuto");
+  return channelId + "exitTuto";
+}
+
+function startCountdownHandler(req){
+  var channelId = req.payload;
+
+  makePubSubMessage(channelId,"startCountdown");
+  return channelId + "startCountdown";
+}
+
+function enableVoteHandler(req){
+  var channelId = req.payload;
+
+  makePubSubMessage(channelId,"enableVote");
+  return channelId + "enableVote";
+}
+
 function lFLegZoneButtonHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
@@ -394,10 +438,40 @@ function makeServerToken(channelId) {
     user_id: ownerId, // extension owner ID for the call to Twitch PubSub
     role: 'external',
     pubsub_perms: {
-      send: ['*'],
+      send: [
+          'broadcast'
+      ],
     },
   };
   return jsonwebtoken.sign(payload, secret, { algorithm: 'HS256' });
+}
+
+function makePubSubMessage (channelId, message) {
+  let token = makeServerToken(channelId);
+
+  request.post({
+    url: 'https://api.twitch.tv/extensions/message/' + channelId,
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'Client-ID': clientId,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      content_type: 'application/json',
+      message: message,
+      targets: ['broadcast']
+    }),
+    gzip: true
+  }, function(e, r, b) {
+    if (e) {
+      console.log(e);
+    } else if (r.statusCode === 204) {
+      console.log(channelId+""+message+" OK");
+    } else {
+      console.log('Got ' + r.statusCode + ' to ' + channelId);
+      console.log(b);
+    }
+  });
 }
 
 function userIsInCooldown(opaqueUserId) {
