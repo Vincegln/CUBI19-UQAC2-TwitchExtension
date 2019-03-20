@@ -272,6 +272,10 @@ function updateCountdown(){
             actuallySelected = null;
             savedMaterial = null;
         }
+        var helperText = $('#helperText');
+        helperText.hide();
+        var voteText = $('#voteText');
+        voteText.show();
 	}
 }
 
@@ -292,6 +296,10 @@ function enableVote(){
     scene.activeCamera.detachPostProcess(blurH);
     scene.activeCamera.detachPostProcess(blurV);
     disablePointerInput = false;
+    var helperText = $('#helperText');
+    helperText.show();
+    var voteText = $('#voteText');
+    voteText.hide();
 }
 
 $(function() {
