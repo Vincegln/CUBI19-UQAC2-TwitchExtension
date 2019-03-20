@@ -235,6 +235,8 @@ function removeTutoMask(){
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', false);
 	disablePointerInput = false;
+	$('#helperText').text('Sélectionnez sur le modèle ci-dessus et votez pour l’endroit que vous notez comme étant le point faible du boss' +
+		' (zone illuminée). Attention, l’aiguille approche !');
 }
 
 //
