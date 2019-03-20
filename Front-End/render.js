@@ -11,7 +11,6 @@ var blurH;
 var blurV;
 var disablePointerInput = true;
 
-var defaultPanningSensibility;
 var defaultAngularSensibilityX;
 var defaultAngularSensibilityY;
 
@@ -88,8 +87,8 @@ var createScene = function () {
 		//
 		countdownText = new BABYLON.GUI.TextBlock();
 		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-		countdownText.paddingBottom = 550;
+		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+		countdownText.paddingTop = 25;
 		countdownText.paddingLeft = 15;
 		countdownText.text = "";
 		countdownText.color = "#fee8b3";
@@ -100,6 +99,18 @@ var createScene = function () {
 	}
 	else if(platform === "mobile")
 	{
+		countdownText = new BABYLON.GUI.TextBlock();
+		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+		countdownText.paddingTop = 10;
+		countdownText.paddingLeft = 15;
+		countdownText.text = "";
+		countdownText.color = "#fee8b3";
+		countdownText.fontSize = 24;
+		countdownText.outlineWidth = 3;
+		countdownText.outlineColor = "black";
+		advancedTexture.addControl(countdownText);
+
 		//Create a Panel
 		var sliderAlphaPanel = new BABYLON.GUI.StackPanel();
 		sliderAlphaPanel.width = "20px";
@@ -123,23 +134,14 @@ var createScene = function () {
 		});
 		sliderAlphaPanel.addControl(sliderAlpha);
 
-		countdownText = new BABYLON.GUI.TextBlock();
-		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-		countdownText.paddingBottom = 225;
-		countdownText.paddingLeft = 15;
-		countdownText.text = "";
-		countdownText.color = "#fee8b3";
-		countdownText.fontSize = 24;
-		countdownText.outlineWidth = 3;
-		countdownText.outlineColor = "black";
-		advancedTexture.addControl(countdownText);
-
 		//Prevent from using touch control while allowing touch selection
-		scene.activeCamera.panningSensibility = 1000000;
 		scene.activeCamera.angularSensibilityX = 1000000;
 		scene.activeCamera.angularSensibilityY = 1000000;
+		scene.activeCamera.zoomingSensibility = 1000000;
 	}
+
+	//Prevent panning
+	scene.activeCamera.panningSensibility = 1000000;
 
 	//Create a mask for the 3D model while in tuto phase
 	tutoMask = new BABYLON.GUI.Rectangle();
@@ -153,7 +155,6 @@ var createScene = function () {
     scene.activeCamera.detachPostProcess(blurH);
     scene.activeCamera.detachPostProcess(blurV);
 
-    defaultPanningSensibility = scene.activeCamera.panningSensibility;
     defaultAngularSensibilityX = scene.activeCamera.angularSensibilityX;
     defaultAngularSensibilityY = scene.activeCamera.angularSensibilityY;
 
@@ -251,7 +252,6 @@ function updateCountdown(){
         var selectZone = $('#SelectZone');
         selectZone.prop('disabled', true);
         countdownCounter = 6;
-        scene.activeCamera.panningSensibility = 1000000;
         scene.activeCamera.angularSensibilityX = 1000000;
         scene.activeCamera.angularSensibilityY = 1000000;
         if(platform==="web")
@@ -290,11 +290,13 @@ function startCountdown(){
 function enableVote(){
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', false);
-	scene.activeCamera.panningSensibility = defaultPanningSensibility;
-	scene.activeCamera.angularSensibilityX = defaultAngularSensibilityX;
-	scene.activeCamera.angularSensibilityY = defaultAngularSensibilityY;
-	aBR.idleRotationSpeed = -0.15;
-	scene.activeCamera.useAutoRotationBehavior = true;
+	if(platform === "web")
+	{
+		scene.activeCamera.angularSensibilityX = defaultAngularSensibilityX;
+		scene.activeCamera.angularSensibilityY = defaultAngularSensibilityY;
+		aBR.idleRotationSpeed = -0.15;
+		scene.activeCamera.useAutoRotationBehavior = true;
+	}
     scene.activeCamera.detachPostProcess(blurH);
     scene.activeCamera.detachPostProcess(blurV);
     disablePointerInput = false;
