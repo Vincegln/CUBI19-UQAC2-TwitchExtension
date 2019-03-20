@@ -87,8 +87,8 @@ var createScene = function () {
 		//
 		countdownText = new BABYLON.GUI.TextBlock();
 		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-		countdownText.paddingTop = 25;
+		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		countdownText.paddingBottom = 10;
 		countdownText.paddingLeft = 15;
 		countdownText.text = "";
 		countdownText.color = "#fee8b3";
@@ -101,8 +101,8 @@ var createScene = function () {
 	{
 		countdownText = new BABYLON.GUI.TextBlock();
 		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-		countdownText.paddingTop = 10;
+		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		countdownText.paddingBottom = 10;
 		countdownText.paddingLeft = 15;
 		countdownText.text = "";
 		countdownText.color = "#fee8b3";
