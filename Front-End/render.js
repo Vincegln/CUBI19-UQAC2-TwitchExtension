@@ -147,8 +147,8 @@ var createScene = function () {
 	tutoMask.background = "black";
 	advancedTexture.addControl(tutoMask);
 
-    blurH = new BABYLON.BlurPostProcess("Horizontal blur", new BABYLON.Vector2(1.0, 0), 32.0, 1.0, scene.activeCamera);
-    blurV = new BABYLON.BlurPostProcess("Vertical blur", new BABYLON.Vector2(0, 1.0), 32.0, 1.0, scene.activeCamera);
+    blurH = new BABYLON.BlurPostProcess("Horizontal blur", new BABYLON.Vector2(1.0, 0), 128.0, 1.0, scene.activeCamera);
+    blurV = new BABYLON.BlurPostProcess("Vertical blur", new BABYLON.Vector2(0, 1.0), 128.0, 1.0, scene.activeCamera);
 
     scene.activeCamera.detachPostProcess(blurH);
     scene.activeCamera.detachPostProcess(blurV);
@@ -239,30 +239,39 @@ function removeTutoMask(){
 
 //
 function updateCountdown(){
-	if(countdownCounter === 0)
+	if(countdownCounter !== 0)
 	{
-		window.clearInterval(countdownTimer);
-		countdownText.text = "";
-		var selectZone = $('#SelectZone');
-		selectZone.prop('disabled', true);
-		countdownCounter = 6;
-		scene.activeCamera.panningSensibility = 1000000;
-		scene.activeCamera.angularSensibilityX = 1000000;
-		scene.activeCamera.angularSensibilityY = 1000000;
-		aBR.idleRotationSpeed = 0;
-		scene.activeCamera.useAutoRotationBehavior = false;
-		scene.activeCamera.attachPostProcess(blurH);
-		scene.activeCamera.attachPostProcess(blurV);
-		disablePointerInput = true;
-        validatedPart.material = validatedMaterial;
-        actuallySelected.material = savedMaterial;
-        validatedPart = null;
-        validatedMaterial = null;
-        actuallySelected = null;
-        savedMaterial = null;
+        countdownCounter--;
+        countdownText.text = countdownCounter.toString();
 	}else{
-		countdownCounter--;
-		countdownText.text = countdownCounter.toString();
+        window.clearInterval(countdownTimer);
+        countdownText.text = "";
+        var selectZone = $('#SelectZone');
+        selectZone.prop('disabled', true);
+        countdownCounter = 6;
+        scene.activeCamera.panningSensibility = 1000000;
+        scene.activeCamera.angularSensibilityX = 1000000;
+        scene.activeCamera.angularSensibilityY = 1000000;
+        if(platform==="web")
+        {
+            aBR.idleRotationSpeed = 0;
+        }
+        scene.activeCamera.useAutoRotationBehavior = false;
+        scene.activeCamera.attachPostProcess(blurH);
+        scene.activeCamera.attachPostProcess(blurV);
+        disablePointerInput = true;
+        if(validatedPart!=null)
+        {
+            validatedPart.material = validatedMaterial;
+            validatedPart = null;
+            validatedMaterial = null;
+        }
+        if(actuallySelected!=null)
+        {
+            actuallySelected.material = savedMaterial;
+            actuallySelected = null;
+            savedMaterial = null;
+        }
 	}
 }
 
