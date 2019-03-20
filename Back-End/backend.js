@@ -195,7 +195,8 @@ function usingValue(name) {
 
 function missingValue(name, variable) {
   const option = name.charAt(0);
-  return `Extension ${name} required.\nUse argument "-${option} <${name}>" or environment variable "${variable}".`;
+  return `Extension ${name} required.\nUse argument "-${option} <${name}>
+        " or environment variable "${variable}".`;
 }
 
 // Get options from the command line or the environment.
@@ -243,7 +244,8 @@ function streamInitHandler(req) {
 
   streams[channelId] = {};
   streams[channelId]["votes"] = {};
-  streams[channelId]["totalVotes"] = {"LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "ChestZone": 0};
+  streams[channelId]["totalVotes"] = {"LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0,
+      "RBLegZone": 0, "TailZone": 0, "ChestZone": 0};
   streams[channelId]["mostVoted"] = "Empty";
   streams[channelId]["maxVotes"] = 0;
   streams[channelId]["nbVotes"] = 0;
@@ -279,14 +281,16 @@ function voteResultHandler(req){
 
   console.log(req.payload+" votes requested");
 
-  return streams[channelId]["mostVoted"]+","+streams[channelId]["nbVotes"]+","+streams[channelId]["maxVotes"];
+  return streams[channelId]["mostVoted"]+","+streams[channelId]["nbVotes"]+
+      ","+streams[channelId]["maxVotes"];
 }
 
 function resetVoteHandler(req){
   var channelId = req.payload;
 
   streams[channelId]["votes"] = {};
-  streams[channelId]["totalVotes"] = {"LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0, "RBLegZone": 0, "TailZone": 0, "ChestZone": 0};
+  streams[channelId]["totalVotes"] = {"LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0,
+      "RBLegZone": 0, "TailZone": 0, "ChestZone": 0};
   streams[channelId]["mostVoted"] = "Empty";
   streams[channelId]["maxVotes"] = 0;
   streams[channelId]["nbVotes"] = 0;
