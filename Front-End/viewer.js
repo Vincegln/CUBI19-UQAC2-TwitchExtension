@@ -25,8 +25,8 @@ function createRequest(type, method, successMethod) {
 	twitch.rig.log(method);
     return {
         type: type,
-        // url: 'http://localhost:8005/' + method,
-        url: 'https://cubi19uqac2.finch4.xyz/' + method,
+        url: 'http://localhost:8005/' + method,
+        // url: 'https://cubi19uqac2.finch4.xyz/' + method,
         success: successMethod,
         error: logError
     }
@@ -102,7 +102,8 @@ $(function() {
 
     // listen for incoming broadcast message from our EBS
     twitch.listen('broadcast', function (target, contentType, message) {
-        switch (message) {
+        var parsedMessage = (message.split(" "));
+        switch (parsedMessage[0]) {
             case "exitTuto" :
                 removeTutoMask();
                 break;
@@ -111,6 +112,9 @@ $(function() {
                 break;
             case "enableVote" :
                 enableVote();
+                break;
+            case "updatePercentage":
+                updatePercentage(parsedMessage);
                 break;
             default:
                 break;

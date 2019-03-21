@@ -21,6 +21,10 @@ var tempMaterial; // Temporary material used to alter the material of the actual
 var validatedMaterial; // Original material of the validated mesh
 var validatedPart; // Mesh validated
 
+var percentageDisplays = [];
+var percentageTexts = [];
+var percentageAdvancedTextures = [];
+
 /*
 *	Create the scene and import the 3D models
 */
@@ -39,7 +43,7 @@ var createScene = function () {
 	var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 10, BABYLON.Vector3.Zero(), scene); 
 	
 	// Set the active camera target (lookAt)
-	scene.activeCamera.target = new BABYLON.Vector3(0, 50, 0);
+	scene.activeCamera.target = new BABYLON.Vector3(0, 50, 50);
 	
 	// Set the active camera position
 	scene.activeCamera.setPosition(new BABYLON.Vector3(-201,98,-192));
@@ -122,7 +126,7 @@ var createScene = function () {
 		var sliderAlpha = new BABYLON.GUI.Slider();
 		sliderAlpha.isVertical = true;
 		sliderAlpha.minimum = 0;
-		sliderAlpha.maximum = 2 * Math.PI;
+		sliderAlpha.maximum = 2 * Math.PI*10;
 		sliderAlpha.color = "#faba3d";
 		sliderAlpha.background = "#e2e2e2";
 		sliderAlpha.value = 2.25;
@@ -130,7 +134,7 @@ var createScene = function () {
 		sliderAlpha.width = "40px";
 		sliderAlpha.isThumbClamped = true;
 		sliderAlpha.onValueChangedObservable.add(function(value) {
-			scene.activeCamera.alpha = -value;
+			scene.activeCamera.alpha = -value/10;
 		});
 		sliderAlphaPanel.addControl(sliderAlpha);
 
@@ -158,6 +162,42 @@ var createScene = function () {
     defaultAngularSensibilityX = scene.activeCamera.angularSensibilityX;
     defaultAngularSensibilityY = scene.activeCamera.angularSensibilityY;
 
+	var i;
+	if(platform === "web"){
+		for(i = 0; i < 6; i++){
+			percentageDisplays[i] = BABYLON.MeshBuilder.CreatePlane("percentage_"+i, {width: 50, height: 50}, scene);
+		}
+	}else if(platform === "mobile"){
+		for(i = 0; i < 6; i++){
+			percentageDisplays[i] = BABYLON.MeshBuilder.CreatePlane("percentage_"+i, {width: 75, height: 75}, scene);
+		}
+	}
+
+	percentageDisplays[0].position = new BABYLON.Vector3(20,-15,-35);
+	percentageDisplays[1].position = new BABYLON.Vector3(15,-15,40);
+	percentageDisplays[2].position = new BABYLON.Vector3(-20,-15,-35);
+	percentageDisplays[3].position = new BABYLON.Vector3(-15,-15,40);
+	percentageDisplays[4].position = new BABYLON.Vector3(0,30,90);
+	percentageDisplays[5].position = new BABYLON.Vector3(0,100,0);
+
+	percentageDisplays.forEach(function (item, index) {
+		percentageAdvancedTextures[index] = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(percentageDisplays[index], 2048, 2048);
+		percentageTexts[index] = new BABYLON.GUI.TextBlock();
+		percentageTexts[index].text = 0+"%";
+		percentageTexts[index].color = "white";
+		percentageTexts[index].fontSize = 360;
+		percentageTexts[index].outlineWidth = 50;
+		percentageTexts[index].outlineColor = "black";
+		percentageAdvancedTextures[index].addControl(percentageTexts[index]);
+
+		item.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+		item.isPickable = false;
+	});
+
+	percentageTexts.forEach(function(item,index){
+		var zero = 0;
+		item.text = zero.toString()+"%";
+	});
 	return scene;
 };
 
@@ -236,8 +276,8 @@ function removeTutoMask(){
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', false);
 	disablePointerInput = false;
-	$('#helperText').text('Sélectionnez sur le modèle ci-dessus et votez pour l’endroit que vous notez comme étant le point faible du boss' +
-		' (zone illuminée). Attention, l’aiguille approche !');
+	$('#helperText').text('Repérez l’endroit que vous notez comme le point faible du boss (zone illuminée),' +
+		' sélectionnez-le sur le modèle ci-dessus et faites connaître votre vote. Faites vite, l’aiguille approche !');
 }
 
 //
@@ -304,6 +344,17 @@ function enableVote(){
     helperText.show();
     var voteText = $('#voteText');
     voteText.hide();
+}
+
+//
+function updatePercentage(parsedMessage){
+	if(parsedMessage[7]!=0){
+		percentageTexts.forEach(function (item, index) {
+			var perc = ((parsedMessage[index+1]/parsedMessage[7])*100);
+			perc = Math.floor(perc);
+			item.text=perc.toString()+"%";
+		})
+	}
 }
 
 $(function() {

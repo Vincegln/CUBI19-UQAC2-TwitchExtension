@@ -20,15 +20,9 @@ const userCooldownMs = 1000;                // maximum input rate per user to pr
 const userCooldownClearIntervalMs = 60000;  // interval to reset our tracking object
 const channelCooldownMs = 1000;             // maximum broadcast rate per channel
 const bearerPrefix = 'Bearer ';             // HTTP authorization headers have this prefix
-const colorWheelRotation = 30;
-const channelColors = {};
-const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
 
 var streams = {};
-var mostVoted = "Empty";
-var maxVotes = 0;
-var nbVotes = 0;
 
 const STRINGS = {
   secretEnv: usingValue('secret'),
@@ -257,6 +251,9 @@ function streamInitHandler(req) {
 }
 
 function streamDeleteHandler(req) {
+  if(streams[req.payload]["percentageTimer"]==null) {
+    clearInterval(streams[channelId]["percentageTimer"]);
+  }
   delete streams[req.payload];
 
   console.log(req.payload+" info deleted");
@@ -307,8 +304,12 @@ function resetVoteHandler(req){
 
 function exitTutoHandler(req){
   var channelId = req.payload;
-
   makePubSubMessage(channelId,"exitTuto");
+  if(streams[channelId]["percentageTimer"]==null)
+  {
+    clearInterval(streams[channelId]["percentageTimer"]);
+    streams[channelId]["percentageTimer"] = setInterval(updatePercentage.bind(null,channelId),1000);
+  }
   return channelId + "exitTuto";
 }
 
@@ -316,14 +317,32 @@ function startCountdownHandler(req){
   var channelId = req.payload;
 
   makePubSubMessage(channelId,"startCountdown");
+  setTimeout(function () {
+    clearInterval(streams[channelId]["percentageTimer"]);
+    streams[channelId]["percentageTimer"] = null;
+  },5000);
+
   return channelId + "startCountdown";
 }
 
 function enableVoteHandler(req){
   var channelId = req.payload;
-
+  if(streams[channelId]["percentageTimer"]==null)
+  {
+    streams[channelId]["percentageTimer"] = setInterval(updatePercentage.bind(null,channelId),1000);
+  }
   makePubSubMessage(channelId,"enableVote");
+
   return channelId + "enableVote";
+}
+
+function updatePercentage(channelId){
+  var message = "updatePercentage";
+  for (var k in streams[channelId]["totalVotes"]){
+    message+=" " + streams[channelId]["totalVotes"][k];
+  }
+  message+=" "+streams[channelId]["nbVotes"];
+  makePubSubMessage(channelId,message);
 }
 
 function lFLegZoneButtonHandler(req) {
