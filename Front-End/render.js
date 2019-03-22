@@ -357,6 +357,22 @@ function updatePercentage(parsedMessage){
 	}
 }
 
+function gameStatusHandler(status){
+	switch(status){
+		case "null":
+		case "tuto":
+			break;
+		case "vote":
+			removeTutoMask();
+			break;
+		case "pinned":
+			removeTutoMask();
+			countdownCounter = 0;
+			updateCountdown();
+			break;
+	}
+}
+
 $(function() {
 	$('#SelectZone').click(function() {
 		//Check if a mesh is selected

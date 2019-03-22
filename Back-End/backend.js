@@ -105,6 +105,12 @@ const server = new Hapi.Server(serverOptions);
   *
   */
 
+    server.route({
+        method: 'POST',
+        path: '/cubi/gameStatus',
+        handler: gameStatusHandler,
+    });
+
   server.route({
     method: 'POST',
     path: '/cubi/exitTuto',
@@ -243,7 +249,7 @@ function streamInitHandler(req) {
   streams[channelId]["mostVoted"] = "Empty";
   streams[channelId]["maxVotes"] = 0;
   streams[channelId]["nbVotes"] = 0;
-  //TODO : Custom PUBSUB to enable extension view
+  streams[channelId]["status"] ="tuto";
 
   console.log(req.payload+" info created");
 
@@ -302,6 +308,16 @@ function resetVoteHandler(req){
 *
 */
 
+function gameStatusHandler(req){
+    var channelId = req.payload;
+
+    if(streams[channelId] !== undefined && streams[channelId]["status"] !== undefined){
+        return streams[channelId]["status"];
+    }else{
+        return "null";
+    }
+}
+
 function exitTutoHandler(req){
   var channelId = req.payload;
   makePubSubMessage(channelId,"exitTuto");
@@ -310,6 +326,7 @@ function exitTutoHandler(req){
     clearInterval(streams[channelId]["percentageTimer"]);
     streams[channelId]["percentageTimer"] = setInterval(updatePercentage.bind(null,channelId),1000);
   }
+    streams[channelId]["status"] ="vote";
   return channelId + "exitTuto";
 }
 
@@ -320,6 +337,7 @@ function startCountdownHandler(req){
   setTimeout(function () {
     clearInterval(streams[channelId]["percentageTimer"]);
     streams[channelId]["percentageTimer"] = null;
+    streams[channelId]["status"] ="pinned";
   },5000);
 
   return channelId + "startCountdown";
@@ -332,6 +350,7 @@ function enableVoteHandler(req){
     streams[channelId]["percentageTimer"] = setInterval(updatePercentage.bind(null,channelId),1000);
   }
   makePubSubMessage(channelId,"enableVote");
+  streams[channelId]["status"] ="vote";
 
   return channelId + "enableVote";
 }

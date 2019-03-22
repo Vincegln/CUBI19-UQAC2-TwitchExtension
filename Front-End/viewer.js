@@ -1,5 +1,6 @@
 var token = "";
 var tuid = "";
+var tcId = "";
 var ebs = "";
 var meshName = "";
 
@@ -17,7 +18,8 @@ var requests = {
     setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
     setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
     setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
-	setChestZone: createRequest('POST', 'cubi/ChestZone', displayTotalVotes)
+	setChestZone: createRequest('POST', 'cubi/ChestZone', displayTotalVotes),
+    getGameStatus: gameStatusRequest('POST', 'cubi/gameStatus', checkGameStatus)
 };
 
 function createRequest(type, method, successMethod) {
@@ -27,6 +29,20 @@ function createRequest(type, method, successMethod) {
         type: type,
         // url: 'http://localhost:8005/' + method,
         url: 'https://cubi19uqac2.finch4.xyz/' + method,
+        success: successMethod,
+        error: logError
+    }
+}
+
+function gameStatusRequest(type, method, successMethod)
+{
+    twitch.rig.log(method);
+    return {
+        type: type,
+        // url: 'http://localhost:8005/' + method,
+        url: 'https://cubi19uqac2.finch4.xyz/' + method,
+        contentType: "text/plain",
+        data: tcId,
         success: successMethod,
         error: logError
     }
@@ -47,6 +63,7 @@ twitch.onAuthorized(function(auth) {
     // save our credentials
     token = auth.token;
     tuid = auth.userId;
+    tcId = auth.channelId;
 
     setAuth(token);
     $.ajax(requests.get);
@@ -54,6 +71,10 @@ twitch.onAuthorized(function(auth) {
 
 function displayTotalVotes(votes) {
     twitch.rig.log('Number of votes : ' + votes);
+}
+
+function checkGameStatus(status) {
+    gameStatusHandler(status);
 }
 
 function logError(_, error, status) {
@@ -66,7 +87,16 @@ function logSuccess(hex, status) {
   twitch.rig.log('EBS request returned '+hex+' ('+status+')');
 }
 
+function gameStatusCheckLoop(){
+    if(!token){setTimeout(gameStatusCheckLoop,3000)}
+    else{
+        $.ajax(requests.getGameStatus);
+    }
+}
+
 $(function() {
+
+    gameStatusCheckLoop
 
 	$('#SelectZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
