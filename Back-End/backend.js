@@ -251,8 +251,6 @@ function streamInitHandler(req) {
   streams[channelId]["nbVotes"] = 0;
   streams[channelId]["status"] ="tuto";
 
-  console.log(req.payload+" info created");
-
   return req.payload+" info created";
 }
 
@@ -261,8 +259,6 @@ function streamDeleteHandler(req) {
     clearInterval(streams[channelId]["percentageTimer"]);
   }
   delete streams[req.payload];
-
-  console.log(req.payload+" info deleted");
 
   return req.payload+" info deleted";
 }
@@ -282,8 +278,6 @@ function voteResultHandler(req){
     }
   }
 
-  console.log(req.payload+" votes requested");
-
   return streams[channelId]["mostVoted"]+","+streams[channelId]["nbVotes"]+
       ","+streams[channelId]["maxVotes"];
 }
@@ -298,8 +292,6 @@ function resetVoteHandler(req){
   streams[channelId]["maxVotes"] = 0;
   streams[channelId]["nbVotes"] = 0;
 
-  console.log(req.payload+" votes reset");
-
   return "Reset completed for "+channelId;
 }
 
@@ -310,6 +302,8 @@ function resetVoteHandler(req){
 
 function gameStatusHandler(req){
     var channelId = req.payload;
+
+    console.log(req.payload +" status request");
 
     if(streams[channelId] !== undefined && streams[channelId]["status"] !== undefined){
         return streams[channelId]["status"];
@@ -508,7 +502,7 @@ function makePubSubMessage (channelId, message) {
     if (e) {
       console.log(e);
     } else if (r.statusCode === 204) {
-      console.log(channelId+""+message+" OK");
+      // console.log(channelId+""+message+" OK");
     } else {
       console.log('Got ' + r.statusCode + ' to ' + channelId);
       console.log(b);

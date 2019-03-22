@@ -74,6 +74,7 @@ function displayTotalVotes(votes) {
 }
 
 function checkGameStatus(status) {
+    console.log(status);
     gameStatusHandler(status);
 }
 
@@ -90,13 +91,14 @@ function logSuccess(hex, status) {
 function gameStatusCheckLoop(){
     if(!token){setTimeout(gameStatusCheckLoop,3000)}
     else{
+        console.log("request sent for channel " + tcId);
         $.ajax(requests.getGameStatus);
     }
 }
 
 $(function() {
 
-    gameStatusCheckLoop
+    gameStatusCheckLoop();
 
 	$('#SelectZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
