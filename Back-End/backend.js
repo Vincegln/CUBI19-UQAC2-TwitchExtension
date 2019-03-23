@@ -87,6 +87,12 @@ const server = new Hapi.Server(serverOptions);
     handler: streamDeleteHandler,
   });
 
+  server.route({
+    method: 'POST',
+    path: '/cubi/streamDelete',
+    handler: streamCleanHandler,
+  });
+
   // Handle a new viewer requesting the color.
   server.route({
     method: 'POST',
@@ -255,12 +261,26 @@ function streamInitHandler(req) {
 }
 
 function streamDeleteHandler(req) {
+  const channelId = req.payload;
+
   if(streams[req.payload]["percentageTimer"]==null) {
     clearInterval(streams[channelId]["percentageTimer"]);
   }
   delete streams[req.payload];
 
   return req.payload+" info deleted";
+}
+
+function streamCleanHandler(req) {
+
+  streams.forEach(function (item, index) {
+    if(item["percentageTimer"]==null) {
+      clearInterval(streams[channelId]["percentageTimer"]);
+    }
+    delete streams[index];
+  });
+
+  return "Streams structure cleaned";
 }
 
 function voteResultHandler(req){

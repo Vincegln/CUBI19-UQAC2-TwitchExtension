@@ -3,6 +3,7 @@ var tuid = "";
 var tcId = "";
 var ebs = "";
 var meshName = "";
+var tokenInitiated = false;
 
 let params = (new URL(document.location)).searchParams;
 let platform = params.get("platform");
@@ -53,6 +54,7 @@ twitch.onAuthorized(function(auth) {
 
     setAuth(token);
     $.ajax(requests.get);
+    tokenInitiated = true;
 });
 
 function displayTotalVotes(votes) {
@@ -75,7 +77,7 @@ function logSuccess(hex, status) {
 }
 
 function gameStatusCheckLoop(){
-    if(!token){setTimeout(gameStatusCheckLoop,3000)}
+    if(!token || !tokenInitiated){setTimeout(gameStatusCheckLoop,1000)}
     else{
         console.log("request sent for channel " + tcId);
         $.ajax(requests.getGameStatus);
