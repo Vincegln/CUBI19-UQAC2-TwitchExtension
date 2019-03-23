@@ -53,6 +53,7 @@ var createScene = function () {
 	
 	// Restrain the zooming feature, so that we don't collide with the model (empirical value here)
 	scene.activeCamera.lowerRadiusLimit = 180;
+	scene.activeCamera.upperRadiusLimit = 300;
 
 	// The first parameter can be used to specify which mesh to import. Here we import all meshes
 	BABYLON.SceneLoader.Append("./assets/", "Zones.gltf", scene, function (loadedMeshes) {

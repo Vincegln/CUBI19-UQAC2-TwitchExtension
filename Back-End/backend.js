@@ -89,7 +89,7 @@ const server = new Hapi.Server(serverOptions);
 
   server.route({
     method: 'POST',
-    path: '/cubi/streamDelete',
+    path: '/cubi/streamClean',
     handler: streamCleanHandler,
   });
 
