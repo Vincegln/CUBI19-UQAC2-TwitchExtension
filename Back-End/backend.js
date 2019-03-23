@@ -301,9 +301,10 @@ function resetVoteHandler(req){
 */
 
 function gameStatusHandler(req){
-    var channelId = req.payload;
+  const payload = verifyAndDecode(req.headers.authorization);
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
 
-    console.log(req.payload +" status request");
+    console.log(channelId +" requested status");
 
     if(streams[channelId] !== undefined && streams[channelId]["status"] !== undefined){
         return streams[channelId]["status"];

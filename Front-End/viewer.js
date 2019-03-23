@@ -19,7 +19,7 @@ var requests = {
     setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
     setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
 	setChestZone: createRequest('POST', 'cubi/ChestZone', displayTotalVotes),
-    getGameStatus: gameStatusRequest('POST', 'cubi/gameStatus', checkGameStatus)
+    getGameStatus: createRequest('POST', 'cubi/gameStatus', checkGameStatus)
 };
 
 function createRequest(type, method, successMethod) {
@@ -29,20 +29,6 @@ function createRequest(type, method, successMethod) {
         type: type,
         // url: 'http://localhost:8005/' + method,
         url: 'https://cubi19uqac2.finch4.xyz/' + method,
-        success: successMethod,
-        error: logError
-    }
-}
-
-function gameStatusRequest(type, method, successMethod)
-{
-    twitch.rig.log(method);
-    return {
-        type: type,
-        // url: 'http://localhost:8005/' + method,
-        url: 'https://cubi19uqac2.finch4.xyz/' + method,
-        contentType: "text/plain",
-        data: tcId,
         success: successMethod,
         error: logError
     }
