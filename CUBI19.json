@@ -36,8 +36,6 @@
       "mode": "viewer",
       "isPopout": false,
       "role": "Logged-In Viewer",
-      "x": 0,
-      "y": 0,
       "orientation": "Portrait",
       "frameSize": {
         "width": 375,

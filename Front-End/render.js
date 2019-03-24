@@ -21,9 +21,12 @@ var tempMaterial; // Temporary material used to alter the material of the actual
 var validatedMaterial; // Original material of the validated mesh
 var validatedPart; // Mesh validated
 
+var perc = -1;
 var percentageDisplays = [];
 var percentageTexts = [];
 var percentageAdvancedTextures = [];
+var mostVotedIndex = [];
+var mostVotedValue;
 
 /*
 *	Create the scene and import the 3D models
@@ -43,7 +46,7 @@ var createScene = function () {
 	var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 10, BABYLON.Vector3.Zero(), scene); 
 	
 	// Set the active camera target (lookAt)
-	scene.activeCamera.target = new BABYLON.Vector3(0, 50, 50);
+	scene.activeCamera.target = new BABYLON.Vector3(0, 50, 0);
 	
 	// Set the active camera position
 	scene.activeCamera.setPosition(new BABYLON.Vector3(-201,98,-192));
@@ -56,7 +59,13 @@ var createScene = function () {
 	scene.activeCamera.upperRadiusLimit = 300;
 
 	// The first parameter can be used to specify which mesh to import. Here we import all meshes
-	BABYLON.SceneLoader.Append("./assets/", "Zones.gltf", scene, function (loadedMeshes) {
+	BABYLON.SceneLoader.Append("./assets/", "Boss.gltf", scene, function (loadedMeshes) {
+		scene.meshes.forEach(function (item, index) {
+			if (item.material !== undefined && !item.name.startsWith("percentage_"))
+			{
+				item.material.needDepthPrePass = true;
+			}
+		})
 	});
 
 	// Set the Background color (RGBA)
@@ -118,10 +127,16 @@ var createScene = function () {
 
 		//Create a Panel
 		var sliderAlphaPanel = new BABYLON.GUI.StackPanel();
-		sliderAlphaPanel.width = "20px";
+		sliderAlphaPanel.width = "52px";
 		sliderAlphaPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 		sliderAlphaPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 		advancedTexture.addControl(sliderAlphaPanel);
+
+		//Create an Image displayer for the slider indication
+		var image = new BABYLON.GUI.Image("arrows", "assets/icon360.png");
+		image.height = "32px";
+		image.width = "32px";
+		sliderAlphaPanel.addControl(image);
 
 		//Create a Slider to turn the model around
 		var sliderAlpha = new BABYLON.GUI.Slider();
@@ -132,8 +147,9 @@ var createScene = function () {
 		sliderAlpha.background = "#e2e2e2";
 		sliderAlpha.value = 2.25;
 		sliderAlpha.height = "200px";
-		sliderAlpha.width = "40px";
-		sliderAlpha.isThumbClamped = true;
+		sliderAlpha.width = "20px";
+		sliderAlpha.isThumbCircle = true;
+		sliderAlpha.thumbWidth = "22px";
 		sliderAlpha.onValueChangedObservable.add(function(value) {
 			scene.activeCamera.alpha = -value/10;
 		});
@@ -196,8 +212,7 @@ var createScene = function () {
 	});
 
 	percentageTexts.forEach(function(item,index){
-		var zero = 0;
-		item.text = zero.toString()+"%";
+		item.text = "";
 	});
 	return scene;
 };
@@ -210,7 +225,10 @@ scene.onPointerPick = function (evt, pickInfo) {
 	if (disablePointerInput) {}
 	else {
         // Check if the mesh is selectable
-        if(!pickInfo.pickedMesh.name.startsWith("NoZone") && !pickInfo.pickedMesh.name.startsWith("skyBox"))
+        if(!pickInfo.pickedMesh.name.startsWith("NoZone")
+			&& !pickInfo.pickedMesh.name.startsWith("skyBox")
+			&& !pickInfo.pickedMesh.name.startsWith("FeatherZone")
+			&& !pickInfo.pickedMesh.name.startsWith("EarringZone"))
         {
             //Check if a mesh as already been selected
             if(actuallySelected)
@@ -278,7 +296,7 @@ function removeTutoMask(){
 	selectZone.prop('disabled', false);
 	disablePointerInput = false;
 	$('#helperText').text('Repérez l’endroit que vous notez comme le point faible du boss (zone illuminée),' +
-		' sélectionnez-le sur le modèle ci-dessus et faites connaître votre vote. Faites vite, l’aiguille approche !');
+		' sélectionnez-le et validez votre vote.');
 }
 
 //
@@ -349,12 +367,36 @@ function enableVote(){
 
 //
 function updatePercentage(parsedMessage){
-	if(parsedMessage[7]!=0){
+	if(parsedMessage[7] !== 0){
+		mostVotedIndex = [];
+		mostVotedValue = -1;
+		perc = -1;
 		percentageTexts.forEach(function (item, index) {
-			var perc = ((parsedMessage[index+1]/parsedMessage[7])*100);
+			perc = ((parsedMessage[index+1]/parsedMessage[7])*100);
 			perc = Math.floor(perc);
-			item.text=perc.toString()+"%";
-		})
+			if(perc > mostVotedValue)
+			{
+				mostVotedValue = perc;
+				mostVotedIndex = [];
+				mostVotedIndex.push(index);
+			}
+			else if(perc === mostVotedValue)
+			{
+				mostVotedIndex.push(index);
+			}
+			if(perc === 0){
+				item.text = "";
+			}else{
+				item.text = perc.toString()+"%";
+			}
+		});
+		percentageTexts.forEach(function (item) {
+			item.color = "white";
+		});
+
+		mostVotedIndex.forEach(function (item) {
+			percentageTexts[item].color = "red";
+		});
 	}
 }
 
