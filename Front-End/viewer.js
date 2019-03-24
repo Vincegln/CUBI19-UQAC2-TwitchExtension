@@ -4,6 +4,11 @@ var tcId = "";
 var ebs = "";
 var meshName = "";
 var tokenInitiated = false;
+var buttonText = "Valider votre vote";
+var buttonTextError = "Erreur, veuillez réessayer";
+var buttonTextConfirmed = "Vote comptabilisé";
+var buttonTextChange = "Changer votre vote";
+var voteOK = false;
 
 let params = (new URL(document.location)).searchParams;
 let platform = params.get("platform");
@@ -58,22 +63,16 @@ twitch.onAuthorized(function(auth) {
 });
 
 function displayTotalVotes(votes) {
+    voteOK = true;
     twitch.rig.log('Number of votes : ' + votes);
 }
 
 function checkGameStatus(status) {
-    console.log(status);
     gameStatusHandler(status);
 }
 
 function logError(_, error, status) {
   twitch.rig.log('EBS request returned '+status+' ('+error+')');
-}
-
-function logSuccess(hex, status) {
-  // we could also use the output to update the block synchronously here,
-  // but we want all views to get the same broadcast response at the same time.
-  twitch.rig.log('EBS request returned '+hex+' ('+status+')');
 }
 
 function gameStatusCheckLoop(){
@@ -118,6 +117,34 @@ $(function() {
 				twitch.rig.log("dafuq");
 				break;
 		}
+		if(meshName !== ""){
+            var button = $('#SelectZone');
+            button.prop('disabled', true);
+            var text = $('#SelectZoneText');
+            text.hide();
+            var loader = $('#loader');
+            loader.show();
+            window.setTimeout(function () {
+                loader.hide();
+                text.show();
+                if(voteOK)
+                {
+                    text.text(buttonTextConfirmed);
+                }else{
+                    text.text(buttonTextError);
+                }
+                window.setTimeout(function () {
+                    if(voteOK)
+                    {
+                        text.text(buttonTextChange);
+                        voteOK = false;
+                    }else{
+                        text.text(buttonText);
+                    }
+                    button.prop('disabled', false);
+                }, 1000)
+            }, 1000)
+        }
     });
 
     // listen for incoming broadcast message from our EBS

@@ -14,12 +14,21 @@ var disablePointerInput = true;
 var defaultAngularSensibilityX;
 var defaultAngularSensibilityY;
 
-var actuallySelected; // Mesh actually selected
-var savedMaterial; // Original material of the mesh actually selected
-var tempMaterial; // Temporary material used to alter the material of the actually selected mesh or the validated mesh
+var plushParts =  ["LFLegZone", "LBLegZone", "RFLegZone",
+	"RBLegZone", "TailZone", "ChestZone"];
+
+var selectedMesh; // Mesh actually selected
+var votedMesh; // Mesh validated
+var plushMaterials = {};
+var plushSelectedMaterials = {};
+
+var selectedPin;
+var votedPin;
+var pinMaterials = {};
+var fresnelMaterial;
 
 var validatedMaterial; // Original material of the validated mesh
-var validatedPart; // Mesh validated
+
 
 var perc = -1;
 var percentageDisplays = [];
@@ -59,14 +68,7 @@ var createScene = function () {
 	scene.activeCamera.upperRadiusLimit = 300;
 
 	// The first parameter can be used to specify which mesh to import. Here we import all meshes
-	BABYLON.SceneLoader.Append("./assets/", "Boss.gltf", scene, function (loadedMeshes) {
-		scene.meshes.forEach(function (item, index) {
-			if (item.material !== undefined && !item.name.startsWith("percentage_"))
-			{
-				item.material.needDepthPrePass = true;
-			}
-		})
-	});
+	BABYLON.SceneLoader.Append("./assets/plushie/", "Boss_Plushie.gltf", scene, function (loadedMeshes) {});
 
 	// Set the Background color (RGBA)
 	scene.clearColor = new BABYLON.Color4(0,0,0,0);
@@ -146,7 +148,7 @@ var createScene = function () {
 		sliderAlpha.color = "#faba3d";
 		sliderAlpha.background = "#e2e2e2";
 		sliderAlpha.value = 2.25;
-		sliderAlpha.height = "200px";
+		sliderAlpha.height = "150px";
 		sliderAlpha.width = "20px";
 		sliderAlpha.isThumbCircle = true;
 		sliderAlpha.thumbWidth = "22px";
@@ -190,19 +192,19 @@ var createScene = function () {
 		}
 	}
 
-	percentageDisplays[0].position = new BABYLON.Vector3(20,-15,-35);
-	percentageDisplays[1].position = new BABYLON.Vector3(15,-15,40);
-	percentageDisplays[2].position = new BABYLON.Vector3(-20,-15,-35);
-	percentageDisplays[3].position = new BABYLON.Vector3(-15,-15,40);
-	percentageDisplays[4].position = new BABYLON.Vector3(0,30,90);
-	percentageDisplays[5].position = new BABYLON.Vector3(0,100,0);
+	percentageDisplays[0].position = new BABYLON.Vector3(35,-10,-17.5); // Left front leg
+	percentageDisplays[1].position = new BABYLON.Vector3(15,-5,40); // Left back leg
+	percentageDisplays[2].position = new BABYLON.Vector3(-35,-10,-17.5); // Right front leg
+	percentageDisplays[3].position = new BABYLON.Vector3(-15,-5,40); // Right back leg
+	percentageDisplays[4].position = new BABYLON.Vector3(0,25,90); // Tail
+	percentageDisplays[5].position = new BABYLON.Vector3(0,80,25); // Chest
 
 	percentageDisplays.forEach(function (item, index) {
 		percentageAdvancedTextures[index] = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(percentageDisplays[index], 2048, 2048);
 		percentageTexts[index] = new BABYLON.GUI.TextBlock();
 		percentageTexts[index].text = 0+"%";
 		percentageTexts[index].color = "white";
-		percentageTexts[index].fontSize = 360;
+		percentageTexts[index].fontSize = 240;
 		percentageTexts[index].outlineWidth = 50;
 		percentageTexts[index].outlineColor = "black";
 		percentageAdvancedTextures[index].addControl(percentageTexts[index]);
@@ -212,13 +214,63 @@ var createScene = function () {
 	});
 
 	percentageTexts.forEach(function(item,index){
-		item.text = "";
+		item.text = "100%";
 	});
+
+	fresnelMaterial = new BABYLON.StandardMaterial("fresnel", scene);
+	fresnelMaterial.reflectionTexture = new BABYLON.CubeTexture("./assets/skybox/skybox", scene);
+	fresnelMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+	fresnelMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+	fresnelMaterial.alpha = 0.5;
+	fresnelMaterial.specularPower = 16;
+
+	// Fresnel
+	fresnelMaterial.reflectionFresnelParameters = new BABYLON.FresnelParameters();
+	fresnelMaterial.reflectionFresnelParameters.bias = 0.1;
+
+	fresnelMaterial.emissiveFresnelParameters = new BABYLON.FresnelParameters();
+	fresnelMaterial.emissiveFresnelParameters.bias = 0.1;
+	fresnelMaterial.emissiveFresnelParameters.power = 16;
+	fresnelMaterial.emissiveFresnelParameters.leftColor = BABYLON.Color3.Green();
+	fresnelMaterial.emissiveFresnelParameters.rightColor = BABYLON.Color3.Black();
+
+	fresnelMaterial.opacityFresnelParameters = new BABYLON.FresnelParameters();
+	fresnelMaterial.opacityFresnelParameters.leftColor = BABYLON.Color3.Green();
+	fresnelMaterial.opacityFresnelParameters.rightColor = BABYLON.Color3.Black();
+
 	return scene;
 };
 
 // Create the scene
 var scene = createScene();
+
+scene.executeWhenReady(function () {
+	scene.meshes.forEach(function (item, index) {
+		if (item.material !== undefined && !item.name.startsWith("percentage_"))
+		{
+			item.material.needDepthPrePass = true;
+		}
+
+		if(item.name.endsWith("Pin")){
+			item.visibility = 0;
+			pinMaterials[item.name] = item.material;
+			item.isPickable = false;
+		} else if(plushParts.includes(item.name))
+		{
+			plushMaterials[item.name] = item.material;
+		}
+	});
+
+	for (var part in plushMaterials) {
+		if(plushMaterials.hasOwnProperty(part))
+		{
+			plushSelectedMaterials[part] = plushMaterials[part].clone(plushMaterials[part].name+"_selected");
+			plushSelectedMaterials[part].emissiveColor = BABYLON.Color3.Purple();
+			plushSelectedMaterials[part].emissiveIntensity = 0.25;
+			plushSelectedMaterials[part].directIntensity = 1;
+		}
+	}
+});
 
 // Callback for clicking/taping on a mesh
 scene.onPointerPick = function (evt, pickInfo) {
@@ -231,50 +283,38 @@ scene.onPointerPick = function (evt, pickInfo) {
 			&& !pickInfo.pickedMesh.name.startsWith("EarringZone"))
         {
             //Check if a mesh as already been selected
-            if(actuallySelected)
+            if(selectedMesh)
             {
-                if(actuallySelected === validatedPart)
+            	//Check if the previously selected mesh is voted
+                if(selectedMesh === votedMesh)
                 {
-                    //Reset the previously selected mesh to validated material
-                    tempMaterial.emissiveColor = new BABYLON.Color3.Green;
-                    tempMaterial.emissiveIntensity = 0.1;
-                    tempMaterial.directIntensity = 10.0;
-                }
+					//Reset the previously selected pin to actual pin material
+					selectedPin.material = pinMaterials[selectedPin.name];
+				}
                 else
                 {
                     //Reset the previously selected mesh with its original material
-                    actuallySelected.material = savedMaterial;
+                    selectedPin.visibility = 0;
                 }
+				//Reset the previous selected mesh to its original material
+				selectedMesh.material = plushMaterials[selectedMesh.name];
             }
+            else{
+            	selectedPin = null;
+			}
 
             //Update the selected mesh value
-            actuallySelected = pickInfo.pickedMesh;
+            selectedMesh = pickInfo.pickedMesh;
 
             //Update the selected mesh name value
             meshName = pickInfo.pickedMesh.name;
 
-            //Check if a validated part exists and is the one actually selected
-            if(validatedPart && validatedPart === actuallySelected)
-            {
-                //Sync original materials for the validated/selected part
-                savedMaterial = validatedMaterial;
-            }
-            else
-            {
-                //Save a copy of the original mesh to savedMaterial
-                savedMaterial = pickInfo.pickedMesh.material.clone(meshName+"_mat");
-            }
+            selectedPin = scene.getMeshByName(meshName+"_Pin");
+            selectedPin.material = fresnelMaterial;
+			selectedPin.visibility = 1;
 
-            //Get a copy original mesh for modifications
-            tempMaterial = pickInfo.pickedMesh.material.clone(meshName+"_matTemp");
-
-            //Add a sandy emissive color
-            tempMaterial.emissiveColor = new BABYLON.Color3(208,147,2);
-            tempMaterial.emissiveIntensity = 0.0005;
-            tempMaterial.directIntensity = 5.0;
-
-            //Updating material
-            pickInfo.pickedMesh.material = tempMaterial;
+            //Add a purple emissive color to the newly selected mesh
+			selectedMesh.material = plushSelectedMaterials[selectedMesh.name];
         }
     }
 };
@@ -321,19 +361,16 @@ function updateCountdown(){
         scene.activeCamera.attachPostProcess(blurH);
         scene.activeCamera.attachPostProcess(blurV);
         disablePointerInput = true;
-        if(validatedPart!=null)
+        if(votedMesh!=null)
         {
-            validatedPart.material = validatedMaterial;
-            validatedPart = null;
-            validatedMaterial = null;
+			votedPin.visibility = 0;
         }
-        if(actuallySelected!=null)
+        if(selectedMesh!=null)
         {
-            actuallySelected.material = savedMaterial;
-            actuallySelected = null;
-            savedMaterial = null;
-        }
-        var helperText = $('#helperText');
+			selectedPin.visibility = 0;
+			selectedMesh.material = plushMaterials[selectedMesh.name];
+		}
+		var helperText = $('#helperText');
         helperText.hide();
         var voteText = $('#voteText');
         voteText.show();
@@ -363,6 +400,7 @@ function enableVote(){
     helperText.show();
     var voteText = $('#voteText');
     voteText.hide();
+	$('#SelectZoneText').text(buttonText);
 }
 
 //
@@ -419,30 +457,24 @@ function gameStatusHandler(status){
 $(function() {
 	$('#SelectZone').click(function() {
 		//Check if a mesh is selected
-		if(actuallySelected)
+		if(selectedMesh)
 		{
 			//Check if a mesh has already been validated
-			if(validatedPart)
+			if(votedMesh && votedMesh.name !== meshName)
 			{
-				//Check if the last validated part is different from the actually selected part
-				if(validatedPart.name !== meshName)
-				{
-					//Reset the last validated part to its original material
-					validatedPart.material = validatedMaterial;
-				}
+					votedPin.visibility = 0;
 			}
-			//Add a greenish emissive color
-			tempMaterial.emissiveColor = new BABYLON.Color3.Green;
-			tempMaterial.emissiveIntensity = 0.1;
-			tempMaterial.directIntensity = 10.0;
+
 			//Update the validated part value
-			validatedPart = actuallySelected;
-			//Sync the original material between validated and saved materials
-			validatedMaterial = savedMaterial;
+			votedMesh = selectedMesh;
+			votedPin = selectedPin;
+
+			votedMesh.material = plushMaterials[votedMesh.name];
+			votedPin.material = pinMaterials[votedPin.name];
+
 			//Reset the actually selected value
-			actuallySelected = null;
-			//Reset the actually selected material value
-			savedMaterial = null;
+			selectedMesh = null;
+			selectedPin = null;
 		}
 	});
 });

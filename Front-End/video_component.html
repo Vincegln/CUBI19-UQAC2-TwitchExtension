@@ -104,6 +104,8 @@
             #SelectZone {
                 font-size: 3.0vw;
                 visibility: visible;
+                max-height: 20%;
+                max-width: 70%;
             }
             #voteText{
                 color: #fee8b3;
@@ -117,6 +119,8 @@
             }
             #SelectZone {
                 font-size: 3.5vw;
+                height: 15%;
+                width: 70%;
             }
             #voteText{
                 font-size: 3.5vw;
@@ -130,6 +134,8 @@
     <script src="./babylonjs.loaders.min.js"></script>
     <script src="./pep.js"></script>
     <script src="./jquery-3.3.1.min.js"></script>
+
+    <link rel="stylesheet" href="./css/all.min.css">
 </head>
 
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
@@ -147,7 +153,14 @@
             L’ennemi possède des points faibles qui s'allument sur son corps, soyez alerte et repérez-les.</br></br>
             Patience pendant que notre combattant se prépare...</p>
         <p id="voteText">Vote terminé. Un nouveau point faible apparaitra sous peu, gardez l’œil ouvert !</p>
-        <input type="button" id="SelectZone" disabled="true" value="Valider votre vote"/>
+        <button id="SelectZone" disabled="true">
+            <div id="SelectZoneText">
+                Valider votre vote
+            </div>
+            <div id="loader" hidden>
+                <i class="fa fa-spinner fa-spin"></i> Envoi en cours
+            </div>
+        </button>
     </wrapper>
 </div>
 
