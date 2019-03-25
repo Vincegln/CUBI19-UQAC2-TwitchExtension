@@ -121,6 +121,8 @@ var createScene = function () {
 	}
 	else if(platform === "mobile")
 	{
+		engine.setHardwareScalingLevel(0.25);
+
 		countdownText = new BABYLON.GUI.TextBlock();
 		countdownText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 		countdownText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
@@ -135,15 +137,15 @@ var createScene = function () {
 
 		//Create a Panel
 		var sliderAlphaPanel = new BABYLON.GUI.StackPanel();
-		sliderAlphaPanel.width = "52px";
+		sliderAlphaPanel.width = "208px";
 		sliderAlphaPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 		sliderAlphaPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 		advancedTexture.addControl(sliderAlphaPanel);
 
 		//Create an Image displayer for the slider indication
 		var image = new BABYLON.GUI.Image("arrows", "assets/icon360.png");
-		image.height = "32px";
-		image.width = "32px";
+		image.height = "128px";
+		image.width = "128px";
 		sliderAlphaPanel.addControl(image);
 
 		//Create a Slider to turn the model around
@@ -154,10 +156,11 @@ var createScene = function () {
 		sliderAlpha.color = "#faba3d";
 		sliderAlpha.background = "#e2e2e2";
 		sliderAlpha.value = 2.25;
-		sliderAlpha.height = "150px";
-		sliderAlpha.width = "20px";
+		sliderAlpha.height = "600px";
+		sliderAlpha.width = "60px";
 		sliderAlpha.isThumbCircle = true;
-		sliderAlpha.thumbWidth = "22px";
+		sliderAlpha.thumbWidth = "65px";
+		sliderAlpha.borderColor = "#000000";
 		sliderAlpha.onValueChangedObservable.add(function(value) {
 			scene.activeCamera.alpha = -value/10;
 		});
