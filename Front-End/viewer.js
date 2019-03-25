@@ -9,6 +9,7 @@ var buttonTextError = "Erreur, veuillez réessayer";
 var buttonTextConfirmed = "Vote comptabilisé";
 var buttonTextChange = "Changer votre vote";
 var voteOK = false;
+var reminderText = "Votre vote actuel est : ";
 
 let params = (new URL(document.location)).searchParams;
 let platform = params.get("platform");
@@ -83,6 +84,31 @@ function gameStatusCheckLoop(){
     }
 }
 
+function getReminder(){
+    var msg = reminderText;
+    switch(meshName){
+        case "LFLegZone":
+            msg += "la patte avant gauche.";
+            break;
+        case "LBLegZone":
+            msg += "la patte arrière gauche.";
+            break;
+        case "RFLegZone":
+            msg += "la patte avant droite.";
+            break;
+        case "RBLegZone":
+            msg += "la patte arriète droite.";
+            break;
+        case "TailZone":
+            msg += "la queue.";
+            break;
+        case "ChestZone":
+            msg += "le torse";
+            break;
+    }
+    return msg;
+}
+
 $(function() {
 
     gameStatusCheckLoop();
@@ -123,9 +149,9 @@ $(function() {
             var text = $('#SelectZoneText');
             text.hide();
             var loader = $('#loader');
-            loader.show();
+            loader.addClass("lds-ring");
             window.setTimeout(function () {
-                loader.hide();
+                loader.removeClass("lds-ring");
                 text.show();
                 if(voteOK)
                 {
@@ -138,6 +164,9 @@ $(function() {
                     {
                         text.text(buttonTextChange);
                         voteOK = false;
+                        var reminder = $('#reminderText');
+                        reminder.text(getReminder());
+                        reminder.show();
                     }else{
                         text.text(buttonText);
                     }
@@ -149,6 +178,7 @@ $(function() {
 
     // listen for incoming broadcast message from our EBS
     twitch.listen('broadcast', function (target, contentType, message) {
+        console.log(message);
         var parsedMessage = (message.split(" "));
         switch (parsedMessage[0]) {
             case "exitTuto" :

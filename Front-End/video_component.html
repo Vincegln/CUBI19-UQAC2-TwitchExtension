@@ -126,6 +126,43 @@
                 font-size: 3.5vw;
             }
         }
+
+        .lds-ring {
+            display: inline-block;
+            position: relative;
+            width: 64px;
+            height: 64px;
+        }
+        .lds-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 51px;
+            height: 51px;
+            margin: 6px;
+            border: 6px solid #fff;
+            border-radius: 50%;
+            animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #fff transparent transparent transparent;
+        }
+        .lds-ring div:nth-child(1) {
+            animation-delay: -0.45s;
+        }
+        .lds-ring div:nth-child(2) {
+            animation-delay: -0.3s;
+        }
+        .lds-ring div:nth-child(3) {
+            animation-delay: -0.15s;
+        }
+        @keyframes lds-ring {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
     </style>
 
     <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
@@ -135,7 +172,6 @@
     <script src="./pep.js"></script>
     <script src="./jquery-3.3.1.min.js"></script>
 
-    <link rel="stylesheet" href="./css/all.min.css">
 </head>
 
 <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
@@ -154,13 +190,12 @@
             Patience pendant que notre combattant se prépare...</p>
         <p id="voteText">Vote terminé. Un nouveau point faible apparaitra sous peu, gardez l’œil ouvert !</p>
         <button id="SelectZone" disabled="true">
+            <div id="loader"><div></div><div></div><div></div><div></div></div>
             <div id="SelectZoneText">
                 Valider votre vote
             </div>
-            <div id="loader" hidden>
-                <i class="fa fa-spinner fa-spin"></i> Envoi en cours
-            </div>
         </button>
+        <p id="reminderText" hidden></p>
     </wrapper>
 </div>
 

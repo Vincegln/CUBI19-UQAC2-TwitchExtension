@@ -62,10 +62,6 @@ var createScene = function () {
 	
 	// Set the controls attached to the camera
 	scene.activeCamera.attachControl(canvas, false);
-	
-	// Restrain the zooming feature, so that we don't collide with the model (empirical value here)
-	scene.activeCamera.lowerRadiusLimit = 180;
-	scene.activeCamera.upperRadiusLimit = 300;
 
 	// The first parameter can be used to specify which mesh to import. Here we import all meshes
 	BABYLON.SceneLoader.Append("./assets/plushie/", "Boss_Plushie.gltf", scene, function (loadedMeshes) {});
@@ -91,6 +87,16 @@ var createScene = function () {
 	if(platform === "web"){
 		scene.activeCamera.panningSensibility = 60;
 		scene.activeCamera.wheelPrecision = 1;
+
+		//
+		scene.activeCamera.radius = 190;
+
+		// Restrain the zooming feature, so that we don't collide with the model (empirical value here)
+		scene.activeCamera.lowerRadiusLimit = 190;
+		scene.activeCamera.upperRadiusLimit = 190;
+
+		scene.activeCamera.lowerBetaLimit = 0.674982;
+		scene.activeCamera.upperBetaLimit = 2.188532;
 
 		//
 		aBR = new BABYLON.AutoRotationBehavior();
@@ -196,7 +202,7 @@ var createScene = function () {
 	percentageDisplays[1].position = new BABYLON.Vector3(15,-5,40); // Left back leg
 	percentageDisplays[2].position = new BABYLON.Vector3(-35,-10,-17.5); // Right front leg
 	percentageDisplays[3].position = new BABYLON.Vector3(-15,-5,40); // Right back leg
-	percentageDisplays[4].position = new BABYLON.Vector3(0,25,90); // Tail
+	percentageDisplays[4].position = new BABYLON.Vector3(0,20,100); // Tail
 	percentageDisplays[5].position = new BABYLON.Vector3(0,80,25); // Chest
 
 	percentageDisplays.forEach(function (item, index) {
@@ -221,7 +227,7 @@ var createScene = function () {
 	fresnelMaterial.reflectionTexture = new BABYLON.CubeTexture("./assets/skybox/skybox", scene);
 	fresnelMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 	fresnelMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-	fresnelMaterial.alpha = 0.5;
+	fresnelMaterial.alpha = 0.9;
 	fresnelMaterial.specularPower = 16;
 
 	// Fresnel
@@ -230,12 +236,12 @@ var createScene = function () {
 
 	fresnelMaterial.emissiveFresnelParameters = new BABYLON.FresnelParameters();
 	fresnelMaterial.emissiveFresnelParameters.bias = 0.1;
-	fresnelMaterial.emissiveFresnelParameters.power = 16;
-	fresnelMaterial.emissiveFresnelParameters.leftColor = BABYLON.Color3.Green();
+	fresnelMaterial.emissiveFresnelParameters.power = 32;
+	fresnelMaterial.emissiveFresnelParameters.leftColor = BABYLON.Color3.White();
 	fresnelMaterial.emissiveFresnelParameters.rightColor = BABYLON.Color3.Black();
 
 	fresnelMaterial.opacityFresnelParameters = new BABYLON.FresnelParameters();
-	fresnelMaterial.opacityFresnelParameters.leftColor = BABYLON.Color3.Green();
+	fresnelMaterial.opacityFresnelParameters.leftColor = BABYLON.Color3.White();
 	fresnelMaterial.opacityFresnelParameters.rightColor = BABYLON.Color3.Black();
 
 	return scene;
@@ -401,6 +407,8 @@ function enableVote(){
     var voteText = $('#voteText');
     voteText.hide();
 	$('#SelectZoneText').text(buttonText);
+	var reminderText = $('#reminderText');
+	reminderText.hide();
 }
 
 //
@@ -422,10 +430,12 @@ function updatePercentage(parsedMessage){
 			{
 				mostVotedIndex.push(index);
 			}
-			if(perc === 0){
-				item.text = "";
-			}else{
-				item.text = perc.toString()+"%";
+			if(!isNaN(perc)) {
+				if (perc === 0) {
+					item.text = "";
+				} else {
+					item.text = perc.toString() + "%";
+				}
 			}
 		});
 		percentageTexts.forEach(function (item) {
