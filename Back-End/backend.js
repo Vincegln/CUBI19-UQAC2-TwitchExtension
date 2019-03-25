@@ -6,233 +6,254 @@ const ext = require('commander');
 const jsonwebtoken = require('jsonwebtoken');
 const request = require('request');
 
-// The developer rig uses self-signed certificates.  Node doesn't accept them
-// by default.  Do not use this in production.
+// Accepting self-signed certificates for development
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-// Use verbose logging during development.  Set this to false for production.
+// Verbose logging for development
 const verboseLogging = true;
-const verboseLog = verboseLogging ? console.log.bind(console) : () => { };
+const verboseLog = verboseLogging ? console.log.bind(console) : () => {
+};
 
-// Service state variables
-const serverTokenDurationSec = 30;          // our tokens for pubsub expire after 30 seconds
-const userCooldownMs = 1000;                // maximum input rate per user to prevent bot abuse
-const userCooldownClearIntervalMs = 60000;  // interval to reset our tracking object
-const channelCooldownMs = 1000;             // maximum broadcast rate per channel
-const bearerPrefix = 'Bearer ';             // HTTP authorization headers have this prefix
-let userCooldowns = {};                     // spam prevention
+/*
+*  Service state variables
+*/
+// Our tokens for pubsub expire after 30 seconds
+const serverTokenDurationSec = 30;
+// HTTP authorization headers have this prefix
+const bearerPrefix = 'Bearer ';
 
+// Data structure
 var streams = {};
 
 const STRINGS = {
-  secretEnv: usingValue('secret'),
-  clientIdEnv: usingValue('client-id'),
-  ownerIdEnv: usingValue('owner-id'),
-  serverStarted: 'Server running at %s',
-  secretMissing: missingValue('secret', 'EXT_SECRET'),
-  clientIdMissing: missingValue('client ID', 'EXT_CLIENT_ID'),
-  ownerIdMissing: missingValue('owner ID', 'EXT_OWNER_ID'),
-  messageSendError: 'Error sending message to channel %s: %s',
-  pubsubResponse: 'Message to c:%s returned %s',
-  cyclingColor: 'Cycling color for c:%s on behalf of u:%s',
-  colorBroadcast: 'Broadcasting color %s for c:%s',
-  sendColor: 'Sending color %s to c:%s',
-  cooldown: 'Please wait before clicking again',
-  invalidAuthHeader: 'Invalid authorization header',
-  invalidJwt: 'Invalid JWT',
+    secretEnv: usingValue('secret'),
+    clientIdEnv: usingValue('client-id'),
+    ownerIdEnv: usingValue('owner-id'),
+    serverStarted: 'Server running at %s',
+    secretMissing: missingValue('secret', 'EXT_SECRET'),
+    clientIdMissing: missingValue('client ID', 'EXT_CLIENT_ID'),
+    ownerIdMissing: missingValue('owner ID', 'EXT_OWNER_ID'),
+    messageSendError: 'Error sending message to channel %s: %s',
+    pubsubResponse: 'Message to c:%s returned %s',
+    cooldown: 'Please wait before clicking again',
+    invalidAuthHeader: 'Invalid authorization header',
+    invalidJwt: 'Invalid JWT',
 };
 
-ext.
-  version(require('../package.json').version).
-  option('-s, --secret <secret>', 'Extension secret').
-  option('-c, --client-id <client_id>', 'Extension client ID').
-  option('-o, --owner-id <owner_id>', 'Extension owner ID').
-  parse(process.argv);
+ext.version(require('../package.json').version)
+    .option('-s, --secret <secret>',
+        'Extension secret')
+    .option('-c, --client-id <client_id>',
+        'Extension client ID')
+    .option('-o, --owner-id <owner_id>',
+        'Extension owner ID').parse(process.argv);
 
-const ownerId = getOption('ownerId', 'ENV_OWNER_ID');
-const secret = Buffer.from(getOption('secret', 'ENV_SECRET'), 'base64');
-const clientId = getOption('clientId', 'ENV_CLIENT_ID');
+// Auth IDs
+const ownerId = getOption('ownerId',
+    'ENV_OWNER_ID');
+const secret = Buffer.from(getOption('secret',
+    'ENV_SECRET'), 'base64');
+const clientId = getOption('clientId',
+    'ENV_CLIENT_ID');
 
+// Server configuration
 const serverOptions = {
-  host: 'localhost',
-  port: 8005,
-  routes: {
-    cors: {
-      origin: ['*'],
+    host: 'localhost',
+    port: 8005,
+    routes: {
+        cors: {
+            origin: ['*'],
+        },
     },
-  },
 };
 const serverPathRoot = path.resolve(__dirname, '..', 'conf', 'server');
 
-if (fs.existsSync(serverPathRoot + '.crt') && fs.existsSync(serverPathRoot + '.key')) {
-  serverOptions.tls = {
-    // If you need a certificate, execute "npm run cert".
-    cert: fs.readFileSync(serverPathRoot + '.crt'),
-    key: fs.readFileSync(serverPathRoot + '.key'),
-  };
+// Check for certificates
+if (fs.existsSync(serverPathRoot + '.crt') &&
+    fs.existsSync(serverPathRoot + '.key'))
+{
+    serverOptions.tls = {
+        cert: fs.readFileSync(serverPathRoot + '.crt'),
+        key: fs.readFileSync(serverPathRoot + '.key'),
+    };
 }
 const server = new Hapi.Server(serverOptions);
 
+// Server routes
 (async () => {
-  // Handle a viewer request to cycle the color.
-  server.route({
-    method: 'POST',
-    path: '/cubi/streamInit',
-    handler: streamInitHandler,
-  });
+    /*
+    * Game <-> Server communications
+    */
 
-  server.route({
-    method: 'POST',
-    path: '/cubi/streamDelete',
-    handler: streamDeleteHandler,
-  });
+    // Create a stream sub-object
+    server.route({
+        method: 'POST',
+        path: '/cubi/streamInit',
+        handler: streamInitHandler,
+    });
 
-  server.route({
-    method: 'POST',
-    path: '/cubi/streamClean',
-    handler: streamCleanHandler,
-  });
+    // Delete this stream sub-object
+    server.route({
+        method: 'POST',
+        path: '/cubi/streamDelete',
+        handler: streamDeleteHandler,
+    });
 
-  // Handle a new viewer requesting the color.
-  server.route({
-    method: 'POST',
-    path: '/cubi/voteResult',
-    handler: voteResultHandler,
-  });
+    //Delete all stream sub-objects
+    server.route({
+        method: 'POST',
+        path: '/cubi/streamClean',
+        handler: streamCleanHandler,
+    });
 
-  server.route({
-    method: 'POST',
-    path: '/cubi/resetVote',
-    handler: resetVoteHandler,
-  });
+    // Return the result of the votes, alongside the total number of votes and
+    // the number of votes for the winning bodyPart
+    server.route({
+        method: 'POST',
+        path: '/cubi/voteResult',
+        handler: voteResultHandler,
+    });
 
-  /*
-  * Twitch Extension <-> Server communications
-  *
-  */
+    // Reset the vote counters to 0
+    server.route({
+        method: 'POST',
+        path: '/cubi/resetVote',
+        handler: resetVoteHandler,
+    });
 
+    /*
+    * Game <-> Server <-> Twitch Extension communications
+    */
+
+    // PubSub message for revealing the voodoo doll to viewers
+    // and enabling vote
+    server.route({
+        method: 'POST',
+        path: '/cubi/exitTuto',
+        handler: exitTutoHandler,
+    });
+
+    // PubSub message to start the pin countdown
+    server.route({
+        method: 'POST',
+        path: '/cubi/startCountdown',
+        handler: startCountdownHandler,
+    });
+
+    // PubSub message to re-enable vote after pinned phase
+    server.route({
+        method: 'POST',
+        path: '/cubi/enableVote',
+        handler: enableVoteHandler,
+    });
+
+    /*
+    * Twitch Extension <-> Server communications
+    */
+
+    // PubSub message to sync the extension status with the game phases
     server.route({
         method: 'POST',
         path: '/cubi/gameStatus',
         handler: gameStatusHandler,
     });
 
-  server.route({
-    method: 'POST',
-    path: '/cubi/exitTuto',
-    handler: exitTutoHandler,
-  });
+    // Viewer vote for left front leg
+    server.route({
+        method: 'POST',
+        path: '/cubi/LFLegZone',
+        handler: lFLegZoneButtonHandler,
+    });
 
-  server.route({
-    method: 'POST',
-    path: '/cubi/startCountdown',
-    handler: startCountdownHandler,
-  });
+    // Viewer vote for left back leg
+    server.route({
+        method: 'POST',
+        path: '/cubi/LBLegZone',
+        handler: lBLegZoneButtonHandler,
+    });
 
-  server.route({
-    method: 'POST',
-    path: '/cubi/enableVote',
-    handler: enableVoteHandler,
-  });
+    // Viewer vote for right front leg
+    server.route({
+        method: 'POST',
+        path: '/cubi/RFLegZone',
+        handler: rFLegZoneButtonHandler,
+    });
 
-  // Handle a viewer request to cycle the color.
-  server.route({
-    method: 'POST',
-    path: '/cubi/LFLegZone',
-    handler: lFLegZoneButtonHandler,
-  });
+    // Viewer vote for right back leg
+    server.route({
+        method: 'POST',
+        path: '/cubi/RBLegZone',
+        handler: rBLegZoneButtonHandler,
+    });
 
-  // Handle a viewer request to cycle the color.
-  server.route({
-    method: 'POST',
-    path: '/cubi/LBLegZone',
-    handler: lBLegZoneButtonHandler,
-  });
+    // Viewer vote for tail
+    server.route({
+        method: 'POST',
+        path: '/cubi/TailZone',
+        handler: tailZoneButtonHandler,
+    });
 
-  // Handle a viewer request to cycle the color.
-  server.route({
-    method: 'POST',
-    path: '/cubi/RFLegZone',
-    handler: rFLegZoneButtonHandler,
-  });
+    // Viewer vote for chest
+    server.route({
+        method: 'POST',
+        path: '/cubi/ChestZone',
+        handler: chestZoneButtonHandler,
+    });
 
-  // Handle a viewer request to cycle the color.
-  server.route({
-    method: 'POST',
-    path: '/cubi/RBLegZone',
-    handler: rBLegZoneButtonHandler,
-  });
+    // Simple hello world, always comes in handy
+    server.route({
+        method: 'GET',
+        path: '/',
+        handler: function (request, h) {
 
-  // Handle a viewer request to cycle the color.
-  server.route({
-    method: 'POST',
-    path: '/cubi/TailZone',
-    handler: tailZoneButtonHandler,
-  });
-  
-  // Handle a viewer request to cycle the color.
-  server.route({
-    method: 'POST',
-    path: '/cubi/ChestZone',
-    handler: chestZoneButtonHandler,
-  });
+            return 'Hello!';
+        }
+    });
 
-  server.route({
-    method: 'GET',
-    path: '/',
-    handler: function (request, h) {
-
-      return 'Hello!';
-    }
-  });
-
-  // Start the server.
-  await server.start();
-  console.log(STRINGS.serverStarted, server.info.uri);
-
-  // Periodically clear cool-down tracking to prevent unbounded growth due to
-  // per-session logged-out user tokens.
-  setInterval(() => { userCooldowns = {}; }, userCooldownClearIntervalMs);
+    // Start the server.
+    await server.start();
+    console.log(STRINGS.serverStarted, server.info.uri);
 })();
 
+// Ease debugging
 function usingValue(name) {
-  return `Using environment variable for ${name}`;
+    return `Using environment variable for ${name}`;
 }
 
+// Ease debugging
 function missingValue(name, variable) {
-  const option = name.charAt(0);
-  return `Extension ${name} required.\nUse argument "-${option} <${name}>
+    const option = name.charAt(0);
+    return `Extension ${name} required.\nUse argument "-${option} <${name}>
         " or environment variable "${variable}".`;
 }
 
 // Get options from the command line or the environment.
 function getOption(optionName, environmentName) {
-  const option = (() => {
-    if (ext[optionName]) {
-      return ext[optionName];
-    } else if (process.env[environmentName]) {
-      console.log(STRINGS[optionName + 'Env']);
-      return process.env[environmentName];
-    }
-    console.log(STRINGS[optionName + 'Missing']);
-    process.exit(1);
-  })();
-  console.log(`Using "${option}" for ${optionName}`);
-  return option;
+    const option = (() => {
+        if (ext[optionName]) {
+            return ext[optionName];
+        } else if (process.env[environmentName]) {
+            console.log(STRINGS[optionName + 'Env']);
+            return process.env[environmentName];
+        }
+        console.log(STRINGS[optionName + 'Missing']);
+        process.exit(1);
+    })();
+    console.log(`Using "${option}" for ${optionName}`);
+    return option;
 }
 
 // Verify the header and the enclosed JWT.
 function verifyAndDecode(header) {
-  if (header.startsWith(bearerPrefix)) {
-    try {
-      const token = header.substring(bearerPrefix.length);
-      return jsonwebtoken.verify(token, secret, { algorithms: ['HS256'] });
+    if (header.startsWith(bearerPrefix)) {
+        try {
+            const token = header.substring(bearerPrefix.length);
+            return jsonwebtoken.verify(token, secret, {algorithms: ['HS256']});
+        } catch (ex) {
+            throw Boom.unauthorized(STRINGS.invalidJwt);
+        }
     }
-    catch (ex) {
-      throw Boom.unauthorized(STRINGS.invalidJwt);
-    }
-  }
-  throw Boom.unauthorized(STRINGS.invalidAuthHeader);
+    throw Boom.unauthorized(STRINGS.invalidAuthHeader);
 }
 
 /*
@@ -241,78 +262,100 @@ function verifyAndDecode(header) {
 */
 
 function streamInitHandler(req) {
-  const channelId = req.payload;
+    const channelId = req.payload;
 
-  if(streams[channelId]!=null)
-  {
-    delete streams[channelId];
-  }
+    // Clean any previous data for this channelId
+    if (streams[channelId] != null) {
+        if(streams[channelId]["status"] !== "tuto")
+        {
+            // Send a PubSub message to the extension
+            makePubSubMessage(channelId, "initTuto");
+        }
+        if (streams[channelId]["percentageTimer"] !== null) {
+            clearInterval(streams[channelId]["percentageTimer"]);
+        }
+        delete streams[channelId];
+    }
 
-  streams[channelId] = {};
-  streams[channelId]["votes"] = {};
-  streams[channelId]["totalVotes"] = {"LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0,
-      "RBLegZone": 0, "TailZone": 0, "ChestZone": 0};
-  streams[channelId]["mostVoted"] = "Empty";
-  streams[channelId]["maxVotes"] = 0;
-  streams[channelId]["nbVotes"] = 0;
-  streams[channelId]["status"] ="tuto";
+    //Create the sub-object for the channel Id and instantiates fields
+    streams[channelId] = {};
+    streams[channelId]["votes"] = {};
+    streams[channelId]["totalVotes"] = {
+        "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0,
+        "RBLegZone": 0, "TailZone": 0, "ChestZone": 0
+    };
+    streams[channelId]["mostVoted"] = "Empty";
+    streams[channelId]["maxVotes"] = 0;
+    streams[channelId]["nbVotes"] = 0;
+    streams[channelId]["status"] = "tuto";
 
-  return req.payload+" info created";
+    return channelId + " info created";
 }
 
 function streamDeleteHandler(req) {
-  const channelId = req.payload;
+    const channelId = req.payload;
 
-  if(streams[req.payload]["percentageTimer"]==null) {
-    clearInterval(streams[channelId]["percentageTimer"]);
-  }
-  delete streams[req.payload];
+    // Clear the updatePercentage timer if need be
+    if (streams[channelId]["percentageTimer"] !== null) {
+        clearInterval(streams[channelId]["percentageTimer"]);
+    }
 
-  return req.payload+" info deleted";
+    // Delete the sub-object related to the channelId
+    delete streams[channelId];
+
+    return channelId + " info deleted";
 }
 
 function streamCleanHandler(req) {
 
-  streams.forEach(function (item, index) {
-    if(item["percentageTimer"]==null) {
-      clearInterval(streams[channelId]["percentageTimer"]);
-    }
-    delete streams[index];
-  });
+    // Delete all stream sub-objects and clear timers if need be
+    streams.forEach(function (item, index) {
+        if (item["percentageTimer"] == null) {
+            clearInterval(streams[channelId]["percentageTimer"]);
+        }
+        delete streams[index];
+    });
 
-  return "Streams structure cleaned";
+    return "Streams structure cleaned";
 }
 
-function voteResultHandler(req){
-  var channelId = req.payload;
+function voteResultHandler(req) {
+    var channelId = req.payload;
 
-  streams[channelId]["mostVoted"] = "Empty";
-  streams[channelId]["maxVotes"] = 0;
+    // Clean results values
+    streams[channelId]["mostVoted"] = "Empty";
+    streams[channelId]["maxVotes"] = 0;
 
-  for(var vote in streams[channelId]["totalVotes"])
-  {
-    if(streams[channelId]["totalVotes"][vote] > streams[channelId]["maxVotes"])
-    {
-      streams[channelId]["maxVotes"] = streams[channelId]["totalVotes"][vote];
-      streams[channelId]["mostVoted"] = vote;
+    // Get the most voted part
+    for (var vote in streams[channelId]["totalVotes"]) {
+        if (streams[channelId]["totalVotes"][vote] >
+            streams[channelId]["maxVotes"])
+        {
+            streams[channelId]["maxVotes"] =
+                streams[channelId]["totalVotes"][vote];
+            streams[channelId]["mostVoted"] = vote;
+        }
     }
-  }
 
-  return streams[channelId]["mostVoted"]+","+streams[channelId]["nbVotes"]+
-      ","+streams[channelId]["maxVotes"];
+    return streams[channelId]["mostVoted"] + ","
+        + streams[channelId]["nbVotes"] +
+        "," + streams[channelId]["maxVotes"];
 }
 
-function resetVoteHandler(req){
-  var channelId = req.payload;
+function resetVoteHandler(req) {
+    var channelId = req.payload;
 
-  streams[channelId]["votes"] = {};
-  streams[channelId]["totalVotes"] = {"LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0,
-      "RBLegZone": 0, "TailZone": 0, "ChestZone": 0};
-  streams[channelId]["mostVoted"] = "Empty";
-  streams[channelId]["maxVotes"] = 0;
-  streams[channelId]["nbVotes"] = 0;
+    // Reset all vote-related values
+    streams[channelId]["votes"] = {};
+    streams[channelId]["totalVotes"] = {
+        "LFLegZone": 0, "LBLegZone": 0, "RFLegZone": 0,
+        "RBLegZone": 0, "TailZone": 0, "ChestZone": 0
+    };
+    streams[channelId]["mostVoted"] = "Empty";
+    streams[channelId]["maxVotes"] = 0;
+    streams[channelId]["nbVotes"] = 0;
 
-  return "Reset completed for "+channelId;
+    return "Reset completed for " + channelId;
 }
 
 /*
@@ -320,226 +363,259 @@ function resetVoteHandler(req){
 *
 */
 
-function gameStatusHandler(req){
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+function gameStatusHandler(req) {
+    const payload = verifyAndDecode(req.headers.authorization);
+    const {channel_id: channelId, opaque_user_id: opaqueUserId} = payload;
 
-    console.log(channelId +" requested status");
+    console.log(channelId + " requested status");
 
-    if(streams[channelId] !== undefined && streams[channelId]["status"] !== undefined){
+    // Check if the stream sub-object has been instantiated
+    if (streams[channelId] !== undefined
+        && streams[channelId]["status"] !== undefined) {
         return streams[channelId]["status"];
-    }else{
+    } else {
         return "null";
     }
 }
 
-function exitTutoHandler(req){
-  var channelId = req.payload;
-  makePubSubMessage(channelId,"exitTuto");
-  if(streams[channelId]["percentageTimer"]==null)
-  {
-    clearInterval(streams[channelId]["percentageTimer"]);
-    streams[channelId]["percentageTimer"] = setInterval(updatePercentage.bind(null,channelId),1000);
-  }
-    streams[channelId]["status"] ="vote";
-  return channelId + "exitTuto";
+function exitTutoHandler(req) {
+    var channelId = req.payload;
+
+    // Send a PubSub message to the extension
+    makePubSubMessage(channelId, "exitTuto");
+
+    // Start the updatePercentage Timer
+    if (streams[channelId]["percentageTimer"] !== null) {
+        clearInterval(streams[channelId]["percentageTimer"]);
+        streams[channelId]["percentageTimer"] =
+            setInterval(updatePercentage.bind(null, channelId), 1000);
+    }
+    streams[channelId]["status"] = "vote";
+
+    return channelId + "exitTuto";
 }
 
-function startCountdownHandler(req){
-  var channelId = req.payload;
+function startCountdownHandler(req) {
+    var channelId = req.payload;
 
-  makePubSubMessage(channelId,"startCountdown");
-  setTimeout(function () {
-    clearInterval(streams[channelId]["percentageTimer"]);
-    streams[channelId]["percentageTimer"] = null;
-    streams[channelId]["status"] ="pinned";
-  },5000);
+    // Send a PubSub message to the extension
+    makePubSubMessage(channelId, "startCountdown");
 
-  return channelId + "startCountdown";
+    // Start the 5 seconds timer before the pin event and clear the
+    // updatePercentage time
+    setTimeout(function () {
+        clearInterval(streams[channelId]["percentageTimer"]);
+        streams[channelId]["percentageTimer"] = null;
+        streams[channelId]["status"] = "pinned";
+    }, 5000);
+
+    return channelId + "startCountdown";
 }
 
-function enableVoteHandler(req){
-  var channelId = req.payload;
-  if(streams[channelId]["percentageTimer"]==null)
-  {
-    streams[channelId]["percentageTimer"] = setInterval(updatePercentage.bind(null,channelId),1000);
-  }
-  makePubSubMessage(channelId,"enableVote");
-  streams[channelId]["status"] ="vote";
+function enableVoteHandler(req) {
+    var channelId = req.payload;
 
-  return channelId + "enableVote";
+    // Start the updatePercentage timer if need be
+    if (streams[channelId]["percentageTimer"] == null) {
+        streams[channelId]["percentageTimer"] =
+            setInterval(updatePercentage.bind(null, channelId), 1000);
+    }
+
+    // Send a PubSub message to the extension
+    makePubSubMessage(channelId, "enableVote");
+    streams[channelId]["status"] = "vote";
+
+    return channelId + "enableVote";
 }
 
-function updatePercentage(channelId){
-  var message = "updatePercentage";
-  for (var k in streams[channelId]["totalVotes"]){
-    message+=" " + streams[channelId]["totalVotes"][k];
-  }
-  message+=" "+streams[channelId]["nbVotes"];
-  makePubSubMessage(channelId,message);
+function updatePercentage(channelId) {
+    var message = "updatePercentage";
+
+    // Get all votes counts
+    for (var k in streams[channelId]["totalVotes"]) {
+        message += " " + streams[channelId]["totalVotes"][k];
+    }
+
+    // Get the grand total of the votes
+    message += " " + streams[channelId]["nbVotes"];
+
+    // Send a PubSub message to the extension
+    makePubSubMessage(channelId, message);
 }
 
 function lFLegZoneButtonHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+    const payload = verifyAndDecode(req.headers.authorization);
+    const {channel_id: channelId, opaque_user_id: opaqueUserId} = payload;
 
-  if(streams[channelId]["votes"][opaqueUserId]!=null)
-  {
-    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
-    streams[channelId]["nbVotes"]--;
-  }
-  streams[channelId]["votes"][opaqueUserId]="LFLegZone";
-  streams[channelId]["totalVotes"]["LFLegZone"]++;
+    // Check if the viewer already voted, and cancel his previous vote if so
+    if (streams[channelId]["votes"][opaqueUserId] != null) {
+        streams[channelId]["totalVotes"]
+            [streams[channelId]["votes"][opaqueUserId]]--;
+        streams[channelId]["nbVotes"]--;
+    }
 
-  streams[channelId]["nbVotes"]++;
+    // Increase the vote number for the voted part and store the viewer
+    // opaque ID
+    streams[channelId]["votes"][opaqueUserId] = "LFLegZone";
+    streams[channelId]["totalVotes"]["LFLegZone"]++;
 
-  return streams[channelId]["nbVotes"];
+    // Increase the grand total of votes
+    streams[channelId]["nbVotes"]++;
+
+    return streams[channelId]["nbVotes"];
 }
 
 function lBLegZoneButtonHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+    const payload = verifyAndDecode(req.headers.authorization);
+    const {channel_id: channelId, opaque_user_id: opaqueUserId} = payload;
 
-  if(streams[channelId]["votes"][opaqueUserId]!=null)
-  {
-    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
-    streams[channelId]["nbVotes"]--;
-  }
-  streams[channelId]["votes"][opaqueUserId]="LBLegZone";
-  streams[channelId]["totalVotes"]["LBLegZone"]++;
+    // Check if the viewer already voted, and cancel his previous vote if so
+    if (streams[channelId]["votes"][opaqueUserId] != null) {
+        streams[channelId]["totalVotes"]
+            [streams[channelId]["votes"][opaqueUserId]]--;
+        streams[channelId]["nbVotes"]--;
+    }
 
-  streams[channelId]["nbVotes"]++;
+    // Increase the vote number for the voted part and store the viewer
+    // opaque ID
+    streams[channelId]["votes"][opaqueUserId] = "LBLegZone";
+    streams[channelId]["totalVotes"]["LBLegZone"]++;
 
-  return streams[channelId]["nbVotes"];
+    // Increase the grand total of votes
+    streams[channelId]["nbVotes"]++;
+
+    return streams[channelId]["nbVotes"];
 }
 
 function rFLegZoneButtonHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+    const payload = verifyAndDecode(req.headers.authorization);
+    const {channel_id: channelId, opaque_user_id: opaqueUserId} = payload;
 
-  if(streams[channelId]["votes"][opaqueUserId]!=null)
-  {
-    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
-    streams[channelId]["nbVotes"]--;
-  }
-  streams[channelId]["votes"][opaqueUserId]="RFLegZone";
-  streams[channelId]["totalVotes"]["RFLegZone"]++;
+    // Check if the viewer already voted, and cancel his previous vote if so
+    if (streams[channelId]["votes"][opaqueUserId] != null) {
+        streams[channelId]["totalVotes"]
+            [streams[channelId]["votes"][opaqueUserId]]--;
+        streams[channelId]["nbVotes"]--;
+    }
 
-  streams[channelId]["nbVotes"]++;
+    // Increase the vote number for the voted part and store the viewer
+    // opaque ID
+    streams[channelId]["votes"][opaqueUserId] = "RFLegZone";
+    streams[channelId]["totalVotes"]["RFLegZone"]++;
 
-  return streams[channelId]["nbVotes"];
+    // Increase the grand total of votes
+    streams[channelId]["nbVotes"]++;
+
+    return streams[channelId]["nbVotes"];
 }
 
 function rBLegZoneButtonHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+    const payload = verifyAndDecode(req.headers.authorization);
+    const {channel_id: channelId, opaque_user_id: opaqueUserId} = payload;
 
-  if(streams[channelId]["votes"][opaqueUserId]!=null)
-  {
-    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
-    streams[channelId]["nbVotes"]--;
-  }
-  streams[channelId]["votes"][opaqueUserId]="RBLegZone";
-  streams[channelId]["totalVotes"]["RBLegZone"]++;
+    // Check if the viewer already voted, and cancel his previous vote if so
+    if (streams[channelId]["votes"][opaqueUserId] != null) {
+        streams[channelId]["totalVotes"]
+            [streams[channelId]["votes"][opaqueUserId]]--;
+        streams[channelId]["nbVotes"]--;
+    }
 
-  streams[channelId]["nbVotes"]++;
+    // Increase the vote number for the voted part and store the viewer
+    // opaque ID
+    streams[channelId]["votes"][opaqueUserId] = "RBLegZone";
+    streams[channelId]["totalVotes"]["RBLegZone"]++;
 
-  return streams[channelId]["nbVotes"];
+    // Increase the grand total of votes
+    streams[channelId]["nbVotes"]++;
+
+    return streams[channelId]["nbVotes"];
 }
 
 function tailZoneButtonHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+    const payload = verifyAndDecode(req.headers.authorization);
+    const {channel_id: channelId, opaque_user_id: opaqueUserId} = payload;
 
-  if(streams[channelId]["votes"][opaqueUserId]!=null)
-  {
-    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
-    streams[channelId]["nbVotes"]--;
-  }
-  streams[channelId]["votes"][opaqueUserId]="TailZone";
-  streams[channelId]["totalVotes"]["TailZone"]++;
+    // Check if the viewer already voted, and cancel his previous vote if so
+    if (streams[channelId]["votes"][opaqueUserId] != null) {
+        streams[channelId]["totalVotes"]
+            [streams[channelId]["votes"][opaqueUserId]]--;
+        streams[channelId]["nbVotes"]--;
+    }
 
-  streams[channelId]["nbVotes"]++;
+    // Increase the vote number for the voted part and store the viewer
+    // opaque ID
+    streams[channelId]["votes"][opaqueUserId] = "TailZone";
+    streams[channelId]["totalVotes"]["TailZone"]++;
 
-  return streams[channelId]["nbVotes"];
+    // Increase the grand total of votes
+    streams[channelId]["nbVotes"]++;
+
+    return streams[channelId]["nbVotes"];
 }
 
 function chestZoneButtonHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+    const payload = verifyAndDecode(req.headers.authorization);
+    const {channel_id: channelId, opaque_user_id: opaqueUserId} = payload;
 
-  if(streams[channelId]["votes"][opaqueUserId]!=null)
-  {
-    streams[channelId]["totalVotes"][streams[channelId]["votes"][opaqueUserId]]--;
-    streams[channelId]["nbVotes"]--;
-  }
-  streams[channelId]["votes"][opaqueUserId]="ChestZone";
-  streams[channelId]["totalVotes"]["ChestZone"]++;
+    // Check if the viewer already voted, and cancel his previous vote if so
+    if (streams[channelId]["votes"][opaqueUserId] != null) {
+        streams[channelId]["totalVotes"]
+            [streams[channelId]["votes"][opaqueUserId]]--;
+        streams[channelId]["nbVotes"]--;
+    }
 
-  streams[channelId]["nbVotes"]++;
+    // Increase the vote number for the voted part and store the viewer
+    // opaque ID
+    streams[channelId]["votes"][opaqueUserId] = "ChestZone";
+    streams[channelId]["totalVotes"]["ChestZone"]++;
 
-  return streams[channelId]["nbVotes"];
+    // Increase the grand total of votes
+    streams[channelId]["nbVotes"]++;
+
+    return streams[channelId]["nbVotes"];
 }
 
 // Create and return a JWT for use by this service.
 function makeServerToken(channelId) {
-  const payload = {
-    exp: Math.floor(Date.now() / 1000) + serverTokenDurationSec,
-    channel_id: channelId,
-    user_id: ownerId, // extension owner ID for the call to Twitch PubSub
-    role: 'external',
-    pubsub_perms: {
-      send: [
-          'broadcast'
-      ],
-    },
-  };
-  return jsonwebtoken.sign(payload, secret, { algorithm: 'HS256' });
+    const payload = {
+        exp: Math.floor(Date.now() / 1000) + serverTokenDurationSec,
+        channel_id: channelId,
+        user_id: ownerId, // Extension owner ID for the call to Twitch PubSub
+        role: 'external',
+        // Set PubSub messages to be sent to all viewers at once
+        pubsub_perms: {
+            send: [
+                'broadcast'
+            ],
+        },
+    };
+    return jsonwebtoken.sign(payload, secret, {algorithm: 'HS256'});
 }
 
-function makePubSubMessage (channelId, message) {
-  let token = makeServerToken(channelId);
+function makePubSubMessage(channelId, message) {
+    let token = makeServerToken(channelId);
 
-  request.post({
-    url: 'https://api.twitch.tv/extensions/message/' + channelId,
-    headers: {
-      Authorization: 'Bearer ' + token,
-      'Client-ID': clientId,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      content_type: 'application/json',
-      message: message,
-      targets: ['broadcast']
-    }),
-    gzip: true
-  }, function(e, r, b) {
-    if (e) {
-      console.log(e);
-    } else if (r.statusCode === 204) {
-      // console.log(channelId+""+message+" OK");
-    } else {
-      console.log('Got ' + r.statusCode + ' to ' + channelId);
-      console.log(b);
-    }
-  });
-}
-
-function userIsInCooldown(opaqueUserId) {
-  // Check if the user is in cool-down.
-  const cooldown = userCooldowns[opaqueUserId];
-  const now = Date.now();
-  if (cooldown && cooldown > now) {
-    return true;
-  }
-
-  // Voting extensions must also track per-user votes to prevent skew.
-  userCooldowns[opaqueUserId] = now + userCooldownMs;
-  return false;
+    request.post({
+        url: 'https://api.twitch.tv/extensions/message/' + channelId,
+        headers: {
+            Authorization: 'Bearer ' + token,
+            'Client-ID': clientId,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            content_type: 'application/json',
+            message: message,
+            targets: ['broadcast']
+        }),
+        gzip: true
+    }, function (e, r, b) {
+        if (e) {
+            console.log(e);
+        } else if (r.statusCode === 204) {
+            // console.log(channelId+""+message+" OK");
+        } else {
+            console.log('Got ' + r.statusCode + ' to ' + channelId);
+            console.log(b);
+        }
+    });
 }

@@ -14,23 +14,31 @@ var reminderText = "Votre vote actuel est : ";
 let params = (new URL(document.location)).searchParams;
 let platform = params.get("platform");
 
-// because who wants to type this every time?
+// Essential for debug using the developer rig
 var twitch = window.Twitch.ext;
 
-// create the request options for our Twitch API calls
+// Creates the request options for our EBS calls
 var requests = {
-    setHeadZone: createRequest('POST', 'cubi/HeadZone', displayTotalVotes),
-    setLFLegZone: createRequest('POST', 'cubi/LFLegZone', displayTotalVotes),
-    setLBLegZone: createRequest('POST', 'cubi/LBLegZone', displayTotalVotes),
-    setRFLegZone: createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
-    setRBLegZone: createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
-    setTailZone: createRequest('POST', 'cubi/TailZone', displayTotalVotes),
-	setChestZone: createRequest('POST', 'cubi/ChestZone', displayTotalVotes),
-    getGameStatus: createRequest('POST', 'cubi/gameStatus', checkGameStatus)
+    setHeadZone:
+        createRequest('POST', 'cubi/HeadZone', displayTotalVotes),
+    setLFLegZone:
+        createRequest('POST', 'cubi/LFLegZone', displayTotalVotes),
+    setLBLegZone:
+        createRequest('POST', 'cubi/LBLegZone', displayTotalVotes),
+    setRFLegZone:
+        createRequest('POST', 'cubi/RFLegZone', displayTotalVotes),
+    setRBLegZone:
+        createRequest('POST', 'cubi/RBLegZone', displayTotalVotes),
+    setTailZone:
+        createRequest('POST', 'cubi/TailZone', displayTotalVotes),
+	setChestZone:
+        createRequest('POST', 'cubi/ChestZone', displayTotalVotes),
+    getGameStatus:
+        createRequest('POST', 'cubi/gameStatus', checkGameStatus)
 };
 
+// Creates a request
 function createRequest(type, method, successMethod) {
-
 	twitch.rig.log(method);
     return {
         type: type,
@@ -41,6 +49,7 @@ function createRequest(type, method, successMethod) {
     }
 }
 
+// Sets auth headers values
 function setAuth(token) {
     Object.keys(requests).forEach((req) => {
         twitch.rig.log('Setting auth headers');
@@ -52,6 +61,7 @@ twitch.onContext(function(context) {
     twitch.rig.log(context);
 });
 
+// Updates auth values
 twitch.onAuthorized(function(auth) {
     // save our credentials
     token = auth.token;
@@ -63,19 +73,23 @@ twitch.onAuthorized(function(auth) {
     tokenInitiated = true;
 });
 
+// Acknowledges that the server received the vote correctly
 function displayTotalVotes(votes) {
     voteOK = true;
     twitch.rig.log('Number of votes : ' + votes);
 }
 
+//
 function checkGameStatus(status) {
     gameStatusHandler(status);
 }
 
+// Logs error messages
 function logError(_, error, status) {
   twitch.rig.log('EBS request returned '+status+' ('+error+')');
 }
 
+// Wait for auth values to be set for asking the EBS for the game status
 function gameStatusCheckLoop(){
     if(!token || !tokenInitiated){setTimeout(gameStatusCheckLoop,1000)}
     else{
@@ -84,6 +98,7 @@ function gameStatusCheckLoop(){
     }
 }
 
+// Manages the reminder text for the last voted part
 function getReminder(){
     var msg = reminderText;
     switch(meshName){
@@ -111,8 +126,10 @@ function getReminder(){
 
 $(function() {
 
+    // Checks the game actual status to be synced with it
     gameStatusCheckLoop();
 
+    // Listens to user inputs on the vote button
 	$('#SelectZone').click(function() {
         if(!token) { return twitch.rig.log('Not authorized'); }
         twitch.rig.log('SelectZone button pressed by ' + tuid);
@@ -140,9 +157,12 @@ $(function() {
 				$.ajax(requests.setChestZone);
 				break;
 			default:
-				twitch.rig.log("dafuq");
+				twitch.rig.log("No zone selected");
 				break;
 		}
+
+		// Adds a loading effect to give some feedback to the viewer after
+        // its vote
 		if(meshName !== ""){
             var button = $('#SelectZone');
             button.prop('disabled', true);
@@ -176,7 +196,7 @@ $(function() {
         }
     });
 
-    // listen for incoming broadcast message from our EBS
+    // Listens for incoming broadcast message from our EBS
     twitch.listen('broadcast', function (target, contentType, message) {
         console.log(message);
         var parsedMessage = (message.split(" "));
@@ -192,6 +212,9 @@ $(function() {
                 break;
             case "updatePercentage":
                 updatePercentage(parsedMessage);
+                break;
+            case "initTuto" :
+                resetToTuto();
                 break;
             default:
                 break;

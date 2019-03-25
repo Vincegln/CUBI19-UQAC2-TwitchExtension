@@ -47,7 +47,10 @@
         }
 
         #voteText{
-            display:none;
+            padding-left: 10px;
+            padding-right: 10px;
+            text-align: center;
+            display: none;
         }
 
         #renderCanvas {
@@ -69,7 +72,9 @@
             color: #fee8b3;
             font-family: Arial,serif;
             font-weight: bold;
-            padding: 0.8em 4em;
+            /*padding: 0.8em 4em;*/
+            height: 8vw;
+            width: 50vw;
             text-decoration: none;
             text-shadow: 0 1px 1px #7e5901;
             visibility: hidden;
@@ -112,15 +117,51 @@
             #SelectZone {
                 font-size: 3.0vw;
                 visibility: visible;
-                max-height: 20%;
-                max-width: 70%;
             }
             #voteText{
+                font-size: 3.0vw;
                 color: #fee8b3;
             }
             #reminder {
                 font-size: 3.0vw;
                 visibility: visible;
+            }
+
+            /* Loader animation*/
+            .lds-ring {
+                display: inline-block;
+                position: relative;
+                width: 16px;
+                height: 16px;
+            }
+            .lds-ring div {
+                box-sizing: border-box;
+                display: block;
+                position: absolute;
+                width: 13px;
+                height: 13px;
+                margin: 2px;
+                border: 2px solid #fff;
+                border-radius: 50%;
+                animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+                border-color: #fff transparent transparent transparent;
+            }
+            .lds-ring div:nth-child(1) {
+                animation-delay: -0.45s;
+            }
+            .lds-ring div:nth-child(2) {
+                animation-delay: -0.3s;
+            }
+            .lds-ring div:nth-child(3) {
+                animation-delay: -0.15s;
+            }
+            @keyframes lds-ring {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
             }
         }
 
@@ -131,8 +172,6 @@
             }
             #SelectZone {
                 font-size: 3.5vw;
-                height: 15%;
-                width: 70%;
             }
             #voteText{
                 font-size: 3.5vw;
@@ -141,47 +180,50 @@
                 font-size: 3.5vw;
                 visibility: hidden;
             }
-        }
 
-        .lds-ring {
-            display: inline-block;
-            position: relative;
-            width: 64px;
-            height: 64px;
-        }
-        .lds-ring div {
-            box-sizing: border-box;
-            display: block;
-            position: absolute;
-            width: 51px;
-            height: 51px;
-            margin: 6px;
-            border: 6px solid #fff;
-            border-radius: 50%;
-            animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-            border-color: #fff transparent transparent transparent;
-        }
-        .lds-ring div:nth-child(1) {
-            animation-delay: -0.45s;
-        }
-        .lds-ring div:nth-child(2) {
-            animation-delay: -0.3s;
-        }
-        .lds-ring div:nth-child(3) {
-            animation-delay: -0.15s;
-        }
-        @keyframes lds-ring {
-            0% {
-                transform: rotate(0deg);
+            /* Loader animation*/
+            .lds-ring {
+                display: inline-block;
+                position: relative;
+                width: 64px;
+                height: 64px;
             }
-            100% {
-                transform: rotate(360deg);
+            .lds-ring div {
+                box-sizing: border-box;
+                display: block;
+                position: absolute;
+                width: 51px;
+                height: 51px;
+                margin: 6px;
+                border: 6px solid #fff;
+                border-radius: 50%;
+                animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+                border-color: #fff transparent transparent transparent;
+            }
+            .lds-ring div:nth-child(1) {
+                animation-delay: -0.45s;
+            }
+            .lds-ring div:nth-child(2) {
+                animation-delay: -0.3s;
+            }
+            .lds-ring div:nth-child(3) {
+                animation-delay: -0.15s;
+            }
+            @keyframes lds-ring {
+                0% {
+                    transform: rotate(0deg);
+                }
+                100% {
+                    transform: rotate(360deg);
+                }
             }
         }
 
     </style>
 
-    <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+    <script
+           src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js">
+    </script>
     <script src="./babylon.js"></script>
     <script src="./babylon.gui.js"></script>
     <script src="./babylonjs.loaders.min.js"></script>
@@ -202,9 +244,11 @@
 <div>
     <wrapper id="bottomZone">
         <p id="helperText">Un rite mystique va se dérouler devant vos yeux.
-            L’ennemi possède des points faibles qui s'allument sur son corps, soyez alerte et repérez-les.</br></br>
+            L’ennemi possède des points faibles qui s'allument sur son corps,
+            soyez alerte et repérez-les.</br></br>
             Patience pendant que notre combattant se prépare...</p>
-        <p id="voteText">Vote terminé. Un nouveau point faible apparaitra sous peu, gardez l’œil ouvert !</p>
+        <p id="voteText">Vote terminé. Un nouveau point faible apparaitra sous
+            peu, gardez l’œil ouvert !</p>
         <button id="SelectZone" disabled="true">
             <div id="loader"><div></div><div></div><div></div><div></div></div>
             <div id="SelectZoneText">
