@@ -220,7 +220,7 @@ var createScene = function () {
 	});
 
 	percentageTexts.forEach(function(item,index){
-		item.text = "100%";
+		item.text = "";
 	});
 
 	fresnelMaterial = new BABYLON.StandardMaterial("fresnel", scene);
