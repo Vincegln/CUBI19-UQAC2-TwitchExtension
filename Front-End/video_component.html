@@ -83,6 +83,10 @@
             cursor: not-allowed;
         }
 
+        #reminder {
+            color: #fee8b3;
+        }
+
         #bottomZone {
             display: flex;
             flex-direction: column;
@@ -110,6 +114,9 @@
             #voteText{
                 color: #fee8b3;
             }
+            #reminder {
+                font-size: 3.0vw;
+            }
         }
 
         /*For desktop display*/
@@ -123,6 +130,9 @@
                 width: 70%;
             }
             #voteText{
+                font-size: 3.5vw;
+            }
+            #reminder {
                 font-size: 3.5vw;
             }
         }
@@ -195,7 +205,7 @@
                 Valider votre vote
             </div>
         </button>
-        <p id="reminderText" hidden></p>
+        <p id="reminder"></p>
     </wrapper>
 </div>
 

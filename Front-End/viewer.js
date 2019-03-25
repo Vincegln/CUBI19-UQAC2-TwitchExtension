@@ -160,11 +160,11 @@ $(function() {
                     text.text(buttonTextError);
                 }
                 window.setTimeout(function () {
+                    var reminder = $('#reminder');
                     if(voteOK)
                     {
                         text.text(buttonTextChange);
                         voteOK = false;
-                        var reminder = $('#reminderText');
                         reminder.text(getReminder());
                         reminder.show();
                     }else{

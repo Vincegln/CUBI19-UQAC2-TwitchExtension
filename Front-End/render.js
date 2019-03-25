@@ -227,7 +227,7 @@ var createScene = function () {
 	fresnelMaterial.reflectionTexture = new BABYLON.CubeTexture("./assets/skybox/skybox", scene);
 	fresnelMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 	fresnelMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-	fresnelMaterial.alpha = 0.9;
+	fresnelMaterial.alpha = 0.5;
 	fresnelMaterial.specularPower = 16;
 
 	// Fresnel
@@ -236,12 +236,12 @@ var createScene = function () {
 
 	fresnelMaterial.emissiveFresnelParameters = new BABYLON.FresnelParameters();
 	fresnelMaterial.emissiveFresnelParameters.bias = 0.1;
-	fresnelMaterial.emissiveFresnelParameters.power = 32;
-	fresnelMaterial.emissiveFresnelParameters.leftColor = BABYLON.Color3.White();
+	fresnelMaterial.emissiveFresnelParameters.power = 16;
+	fresnelMaterial.emissiveFresnelParameters.leftColor = BABYLON.Color3.Green();
 	fresnelMaterial.emissiveFresnelParameters.rightColor = BABYLON.Color3.Black();
 
 	fresnelMaterial.opacityFresnelParameters = new BABYLON.FresnelParameters();
-	fresnelMaterial.opacityFresnelParameters.leftColor = BABYLON.Color3.White();
+	fresnelMaterial.opacityFresnelParameters.leftColor = BABYLON.Color3.Green();
 	fresnelMaterial.opacityFresnelParameters.rightColor = BABYLON.Color3.Black();
 
 	return scene;
