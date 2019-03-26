@@ -536,6 +536,12 @@ function updatePercentage(parsedMessage){
 			percentageTexts[item].color = "red";
 		});
 	}
+	else
+	{
+		percentageTexts.forEach(function (item) {
+			item.text = "";
+		})
+	}
 }
 
 function resetToTuto(){
