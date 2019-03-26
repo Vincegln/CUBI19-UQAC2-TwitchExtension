@@ -452,6 +452,7 @@ function updateCountdown(){
         scene.activeCamera.attachPostProcess(blurH);
         scene.activeCamera.attachPostProcess(blurV);
         disablePointerInput = true;
+        isFrozen = true;
         if(votedMesh!=null)
         {
 			votedPin.visibility = 0;
@@ -478,8 +479,6 @@ function startCountdown(){
 
 // Manages the transition of the extension from pinned to vote phase
 function enableVote(){
-	var selectZone = $('#SelectZone');
-	selectZone.prop('disabled', false);
 	if(platform === "web")
 	{
 		scene.activeCamera.angularSensibilityX = defaultAngularSensibilityX;
@@ -497,6 +496,9 @@ function enableVote(){
 	$('#SelectZoneText').text(buttonText);
 	var reminderText = $('#reminder');
 	reminderText.hide();
+	var selectZone = $('#SelectZone');
+	selectZone.prop('disabled', false);
+	isFrozen = false;
 }
 
 // Manages the update of the votes percentage value and display

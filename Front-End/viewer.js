@@ -10,6 +10,7 @@ var buttonTextConfirmed = "Vote comptabilisé";
 var buttonTextChange = "Changer votre vote";
 var voteOK = false;
 var reminderText = "Votre vote actuel est : ";
+var isFrozen = false;
 
 let params = (new URL(document.location)).searchParams;
 let platform = params.get("platform");
@@ -190,7 +191,9 @@ $(function() {
                     }else{
                         text.text(buttonText);
                     }
-                    button.prop('disabled', false);
+                    if(!isFrozen){
+                        button.prop('disabled', false);
+                    }
                 }, 1000)
             }, 1000)
         }
