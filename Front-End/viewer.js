@@ -9,7 +9,7 @@ var buttonTextError = "Erreur, veuillez réessayer";
 var buttonTextConfirmed = "Vote comptabilisé";
 var buttonTextChange = "Changer votre vote";
 var voteOK = false;
-var reminderText = "Votre vote actuel est : ";
+var reminderText = "Votre vote actuel est: </br>";
 var isFrozen = false;
 
 let params = (new URL(document.location)).searchParams;
@@ -43,8 +43,8 @@ function createRequest(type, method, successMethod) {
 	twitch.rig.log(method);
     return {
         type: type,
-        // url: 'http://localhost:8005/' + method,
-        url: 'https://cubi19uqac2.finch4.xyz/' + method,
+        url: 'http://localhost:8005/' + method,
+        // url: 'https://cubi19uqac2.finch4.xyz/' + method,
         success: successMethod,
         error: logError
     }
@@ -104,24 +104,25 @@ function getReminder(){
     var msg = reminderText;
     switch(meshName){
         case "LFLegZone":
-            msg += "la patte avant gauche.";
+            msg += "La patte avant gauche.";
             break;
         case "LBLegZone":
-            msg += "la patte arrière gauche.";
+            msg += "La patte arrière gauche.";
             break;
         case "RFLegZone":
-            msg += "la patte avant droite.";
+            msg += "La patte avant droite.";
             break;
         case "RBLegZone":
-            msg += "la patte arriète droite.";
+            msg += "La patte arrière droite.";
             break;
         case "TailZone":
-            msg += "la queue.";
+            msg += "La queue.";
             break;
         case "ChestZone":
-            msg += "le torse";
+            msg += "Le torse";
             break;
     }
+    meshName = "";
     return msg;
 }
 
@@ -129,6 +130,8 @@ $(function() {
 
     // Checks the game actual status to be synced with it
     gameStatusCheckLoop();
+
+    var reminder = $('#reminder');
 
     // Listens to user inputs on the vote button
 	$('#SelectZone').click(function() {
@@ -158,13 +161,16 @@ $(function() {
 				$.ajax(requests.setChestZone);
 				break;
 			default:
-				twitch.rig.log("No zone selected");
+
+                reminder.html("Vous devez d'abord sélectionner une zone !");
+                reminder.show();
 				break;
 		}
-
+		
 		// Adds a loading effect to give some feedback to the viewer after
         // its vote
 		if(meshName !== ""){
+            reminder.hide();
             var button = $('#SelectZone');
             button.prop('disabled', true);
             var text = $('#SelectZoneText');
@@ -181,12 +187,11 @@ $(function() {
                     text.text(buttonTextError);
                 }
                 window.setTimeout(function () {
-                    var reminder = $('#reminder');
                     if(voteOK)
                     {
                         text.text(buttonTextChange);
                         voteOK = false;
-                        reminder.text(getReminder());
+                        reminder.html(getReminder());
                         reminder.show();
                     }else{
                         text.text(buttonText);
@@ -218,6 +223,9 @@ $(function() {
                 break;
             case "initTuto" :
                 resetToTuto();
+                break;
+            case "resetVote" :
+                resetVote();
                 break;
             default:
                 break;

@@ -536,12 +536,6 @@ function updatePercentage(parsedMessage){
 			percentageTexts[item].color = "red";
 		});
 	}
-	else
-	{
-		percentageTexts.forEach(function (item) {
-			item.text = "";
-		})
-	}
 }
 
 function resetToTuto(){
@@ -566,6 +560,24 @@ function resetToTuto(){
 	percentageTexts.forEach(function (item) {
 		item.text = "";
 	})
+}
+
+function resetVote() {
+	if(votedMesh!=null)
+	{
+		votedPin.visibility = 0;
+	}
+	if(selectedMesh!=null)
+	{
+		selectedPin.visibility = 0;
+		selectedMesh.material = plushMaterials[selectedMesh.name];
+	}
+	meshName = "";
+	percentageTexts.forEach(function (item) {
+		item.text = "";
+	})
+	var reminderText = $('#reminder');
+	reminderText.hide();
 }
 
 // Manages the synchronisation between the game phase and the extension

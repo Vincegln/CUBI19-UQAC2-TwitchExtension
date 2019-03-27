@@ -11,7 +11,11 @@ And then it goes back to the tutorial phase, in an infinite loop, so that you ca
 
 Changelog : 
 
-1.0.0 (actual) :
+1.0.1 (actual) :
+Minor bug fixes
+PubSub message calls decreased
+
+1.0.0 :
 Minor bug fixes
 
 0.0.3 :

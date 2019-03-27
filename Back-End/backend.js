@@ -355,6 +355,8 @@ function resetVoteHandler(req) {
     streams[channelId]["maxVotes"] = 0;
     streams[channelId]["nbVotes"] = 0;
 
+    makePubSubMessage(channelId, "resetVote");
+
     return "Reset completed for " + channelId;
 }
 
@@ -431,16 +433,19 @@ function enableVoteHandler(req) {
 function updatePercentage(channelId) {
     var message = "updatePercentage";
 
-    // Get all votes counts
-    for (var k in streams[channelId]["totalVotes"]) {
-        message += " " + streams[channelId]["totalVotes"][k];
+    if(streams[channelId]["nbVotes"]!=0)
+    {
+        // Get all votes counts
+        for (var k in streams[channelId]["totalVotes"]) {
+            message += " " + streams[channelId]["totalVotes"][k];
+        }
+
+        // Get the grand total of the votes
+        message += " " + streams[channelId]["nbVotes"];
+
+        // Send a PubSub message to the extension
+        makePubSubMessage(channelId, message);
     }
-
-    // Get the grand total of the votes
-    message += " " + streams[channelId]["nbVotes"];
-
-    // Send a PubSub message to the extension
-    makePubSubMessage(channelId, message);
 }
 
 function lFLegZoneButtonHandler(req) {
