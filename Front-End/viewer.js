@@ -43,8 +43,8 @@ function createRequest(type, method, successMethod) {
 	twitch.rig.log(method);
     return {
         type: type,
-        url: 'http://localhost:8005/' + method,
-        // url: 'https://cubi19uqac2.finch4.xyz/' + method,
+        // url: 'http://localhost:8005/' + method,
+        url: 'https://cubi19uqac2.finch4.xyz/' + method,
         success: successMethod,
         error: logError
     }
@@ -166,7 +166,7 @@ $(function() {
                 reminder.show();
 				break;
 		}
-		
+
 		// Adds a loading effect to give some feedback to the viewer after
         // its vote
 		if(meshName !== ""){
