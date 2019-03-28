@@ -427,6 +427,7 @@ function removeTutoMask(){
 	$('#helperText').text('Repérez l’endroit que vous notez comme ' +
 		'le point faible du boss (zone illuminée),' +
 		' sélectionnez-le et validez votre vote.');
+	selectZone.show();
 }
 
 // Updates the pin countdown and at the end of it, manages the transition of the
@@ -543,6 +544,7 @@ function resetToTuto(){
 	enableVote();
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', true);
+	selectZone.hide();
 	if(votedMesh!=null)
 	{
 		votedPin.visibility = 0;
