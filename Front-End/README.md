@@ -6,8 +6,7 @@ The testing environment is as follows (the times are approximate) :
 - 10 sec in the tutorial phase
 - 30 -35 sec in the vote phase
 - 10 sec in the "pinned" phase, where the extension is frozen
-- 30 sec in a new vote phase
-
+- 30 sec in a new vote phase  
 And then it goes back to the tutorial phase, in an infinite loop, so that you can test every part of the extension.
 
 ## Changelog : 
