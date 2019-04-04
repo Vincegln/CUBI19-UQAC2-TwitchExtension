@@ -67,3 +67,7 @@ typings/
 Front-End\.zip
 
 \.idea/
+
+
+# Notepad++ back-up files
+\nppBackup
