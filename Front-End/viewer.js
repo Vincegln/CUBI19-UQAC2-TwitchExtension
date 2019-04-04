@@ -80,7 +80,7 @@ function displayTotalVotes(votes) {
     twitch.rig.log('Number of votes : ' + votes);
 }
 
-//
+// Transmit the game status to the renderer
 function checkGameStatus(status) {
     gameStatusHandler(status);
 }

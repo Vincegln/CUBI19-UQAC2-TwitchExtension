@@ -355,6 +355,7 @@ function resetVoteHandler(req) {
     streams[channelId]["maxVotes"] = 0;
     streams[channelId]["nbVotes"] = 0;
 
+    // Send a PubSub message to the extension
     makePubSubMessage(channelId, "resetVote");
 
     return "Reset completed for " + channelId;

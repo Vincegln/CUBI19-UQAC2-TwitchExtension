@@ -539,6 +539,7 @@ function updatePercentage(parsedMessage){
 	}
 }
 
+// Reset everything to tuto state, including the 3D model masking
 function resetToTuto(){
 	advancedTexture.addControl(tutoMask);
 	enableVote();
@@ -564,6 +565,7 @@ function resetToTuto(){
 	})
 }
 
+// Handle visual details when votes are reset
 function resetVote() {
 	if(votedMesh!=null)
 	{
