@@ -4,12 +4,12 @@ var tcId = "";
 var ebs = "";
 var meshName = "";
 var tokenInitiated = false;
-var buttonText = "Valider votre vote";
-var buttonTextError = "Erreur, veuillez réessayer";
-var buttonTextConfirmed = "Vote comptabilisé";
-var buttonTextChange = "Changer votre vote";
+var buttonText = "Submit your vote";
+var buttonTextError = "There has been an error, please try again";
+var buttonTextConfirmed = "Vote submitted";
+var buttonTextChange = "Change your vote";
 var voteOK = false;
-var reminderText = "Votre vote actuel est: </br>";
+var reminderText = "Your submitted vote is: </br>";
 var isFrozen = false;
 
 let params = (new URL(document.location)).searchParams;
@@ -104,22 +104,22 @@ function getReminder(){
     var msg = reminderText;
     switch(meshName){
         case "LFLegZone":
-            msg += "La patte avant gauche.";
+            msg += "The left front leg.";
             break;
         case "LBLegZone":
-            msg += "La patte arrière gauche.";
+            msg += "The left back leg.";
             break;
         case "RFLegZone":
-            msg += "La patte avant droite.";
+            msg += "The right front leg.";
             break;
         case "RBLegZone":
-            msg += "La patte arrière droite.";
+            msg += "The right back leg.";
             break;
         case "TailZone":
-            msg += "La queue.";
+            msg += "The tail.";
             break;
         case "ChestZone":
-            msg += "Le torse";
+            msg += "The chest";
             break;
     }
     meshName = "";
@@ -162,7 +162,7 @@ $(function() {
 				break;
 			default:
 
-                reminder.html("Vous devez d'abord sélectionner une zone !");
+                reminder.html("You must select a zone beforehand !");
                 reminder.show();
 				break;
 		}

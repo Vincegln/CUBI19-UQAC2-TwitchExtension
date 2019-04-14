@@ -50,10 +50,10 @@ var percentageAdvancedTextures = []; // List of GUI containers for the
 var mostVotedIndex = []; // List of indexes for the most voted parts
 var mostVotedValue; // Percentage value of the most voted part(s)
 
-var originalHelperText = "Un rite mystique va se dérouler devant vos yeux." +
-	"			L’ennemi possède des points faibles qui s'allument sur son" +
-	" 			corps, soyez alerte et repérez-les.</br></br>" +
-	"           Patience pendant que notre combattant se prépare...";
+var originalHelperText = "A mystical rite is about to unfold before your eyes."
+	+ "The enemy has weak points that light up on his body,"
+	+ "you will have to try and spot them.</br></br>"
+	+ "Please be patient as our challenger gets ready...";
 
 /*
 *	Create the scene and import the 3D models
@@ -424,9 +424,8 @@ function removeTutoMask(){
 	var selectZone = $('#SelectZone');
 	selectZone.prop('disabled', false);
 	disablePointerInput = false;
-	$('#helperText').text('Repérez l’endroit que vous notez comme ' +
-		'le point faible du boss (zone illuminée),' +
-		' sélectionnez-le et validez votre vote.');
+	$('#helperText').text('Spot a weak point on the boss (illuminated part),' +
+		' select it on the doll and submit your vote.');
 	selectZone.show();
 }
 
