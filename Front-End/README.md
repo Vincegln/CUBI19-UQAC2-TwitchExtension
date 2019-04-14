@@ -12,7 +12,7 @@ And then it goes back to the tutorial phase, in an infinite loop, so that you ca
 ## Changelog : 
 
 1.0.2 :
-Changed extension language frome French to English
+Changed extension language from French to English
 
 1.0.1 :
 Minor bug fixes
